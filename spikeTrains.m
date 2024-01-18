@@ -62,4 +62,9 @@ for i=1:nFiles
     colorbar
     title("spike smoothed Zscore")
 
+% waveforms
+%     ind = 1;
+%     [~,bestInd] = max(max(abs(waveformsGood(ind,:,:)),[],2));
+%     plot(waveformsTime,squeeze(waveformsGood(ind,bestInd,:)));
+
 end
