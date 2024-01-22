@@ -1,5 +1,6 @@
 binSize = 0.1; %bin width in seconds
 maxTime = 50*60; %max time in seconds
+subRefractoryThreshold = 0.002;
 xA = 0:binSize:maxTime;
 nbins = length(xA)-1;
 
@@ -39,7 +40,7 @@ for i=1:nFiles
     for u =1:length(spk)
         spkCounts(u,:) = histcounts(spk{u}, xA);
         
-        subRefractoryThreshold = 0.001;
+        
         isSubRefractory = diff(spk{u}) < subRefractoryThreshold;
         subSpikes = spk{u};
         subSpikes  = subSpikes(2:end);
