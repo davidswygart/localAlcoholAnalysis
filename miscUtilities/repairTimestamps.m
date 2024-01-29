@@ -63,7 +63,38 @@ xlabel('time between timestamp resets (s)')
 %& eventsLine==2 & eventsState==1);
 %plot(isStuck)
 
-%% Where do breaks occur?
 
-resetPoints = find(diff(eventsTimestamp)<0);
+
+%% Get average camera framerates (time between on events and delay from on event to off event)
+[aOnDiff, aOffWait] = medianDiff(eventsTimestamp,eventsLine,eventsState, 1);
+[bOnDiff, bOffWait] = medianDiff(eventsTimestamp,eventsLine,eventsState, 2);
+[cOnDiff, cOffWait] = medianDiff(eventsTimestamp,eventsLine,eventsState, 3);
+
+%% Where do breaks occur?
+resetPointInds = find(diff(eventsTimestamp)<0);
+fixedTimeStamps = eventsTimestamp;
+for rpi = 1:length(resetPointInds)
+
+    %add final value to the rest of the train
+
+
+end
+
+function [onDiff, offWait] = medianDiff(eventsTimestamp,eventsLine,eventsState, line)
+onDiff = diff(eventsTimestamp(eventsLine==line & eventsState==1));
+onDiff = onDiff(onDiff>0 & onDiff<1);
+plot(onDiff)
+onDiff = median(onDiff);
+
+offTimes = eventsTimestamp(eventsLine==line & eventsState==0);
+onTimes = eventsTimestamp(eventsLine==line & eventsState==1);
+
+if length(offTimes)<length(onTimes)
+    onTimes = onTimes(1:end-1);
+end
+offWait = offTimes-onTimes;
+offWait = offWait(offWait>0 & offWait<1);
+plot(offWait)
+offWait = median(offWait);
+end
 
