@@ -1,3 +1,4 @@
+allVars = who;
 
 %%
 figure(1)
@@ -62,28 +63,28 @@ xlabel('time between timestamp resets (s)')
 
 
 %% Where do breaks occur?
-resetPointInds = find(diff(eventsTimestamp)<-0.5);
-resumeNormalInds = find(diff(eventsTimestamp)>1.5);
-fixedTimeStamps = eventsTimestamp;
-
-aOnTimes = eventsTimestamp(eventsLine==1 & eventsState==1);
-aOnInds = find(eventsLine==1 & eventsState==1);
-
-for rpi = 1:length(resetPointInds)
-    lastGoodAOn = aOnTimes(aOnInds<resetPointInds(rpi));
-    lastGoodAOn = lastGoodAOn(end);
-
-    NeedFixed = aOnInds>resetPointInds(rpi) & aOnInds<resumeNormalInds(rpi);
-    start = lastGoodAOn+aOnDiff;
-    stop = lastGoodAOn+aOnDiff*sum(NeedFixed);
-    aOnTimes(NeedFixed) = start:aOnDiff:stop;
-    
-    remaining = find(NeedFixed,1,'last')+1;
-    aOnTimes(remaining:end) = aOnTimes(remaining:end) - aOnTimes(remaining);
-    aOnTimes(remaining:end) = aOnTimes(remaining:end) + stop+aOnDiff;
-
-    %add final value to the rest of the train
-end
+% resetPointInds = find(diff(eventsTimestamp)<-0.5);
+% resumeNormalInds = find(diff(eventsTimestamp)>1.5);
+% fixedTimeStamps = eventsTimestamp;
+% 
+% aOnTimes = eventsTimestamp(eventsLine==1 & eventsState==1);
+% aOnInds = find(eventsLine==1 & eventsState==1);
+% 
+% for rpi = 1:length(resetPointInds)
+%     lastGoodAOn = aOnTimes(aOnInds<resetPointInds(rpi));
+%     lastGoodAOn = lastGoodAOn(end);
+% 
+%     NeedFixed = aOnInds>resetPointInds(rpi) & aOnInds<resumeNormalInds(rpi);
+%     start = lastGoodAOn+aOnDiff;
+%     stop = lastGoodAOn+aOnDiff*sum(NeedFixed);
+%     aOnTimes(NeedFixed) = start:aOnDiff:stop;
+% 
+%     remaining = find(NeedFixed,1,'last')+1;
+%     aOnTimes(remaining:end) = aOnTimes(remaining:end) - aOnTimes(remaining);
+%     aOnTimes(remaining:end) = aOnTimes(remaining:end) + stop+aOnDiff;
+% 
+%     %add final value to the rest of the train
+% end
 
 
 %% Get average camera framerates (time between on events and delay from on event to off event)
@@ -93,7 +94,7 @@ end
 fixedTimeStamps = eventsTimestamp;
 
 % Simple reconstruct, just use last good value for each camera
-aOnInds = eventsLine==1 & eventsState==1;
+% aOnInds = eventsLine==1 & eventsState==1;
 % aOnVals = eventsTimestamp(aOnInds);
 % fixedTimeStamps(aOnInds) = repairWithDelta(aOnVals, aOnDiff);
 % aOffInds = eventsLine==1 & eventsState==0;
@@ -130,6 +131,11 @@ interpStamps = interp1(find(goodInds),fixedTimeStamps(goodInds), 1:length(events
 
 % check 1 Hz signal
 plot(diff(interpStamps(eventsLine==4 & eventsState==1)))
+
+%%
+eventsTimestamp = interpStamps;
+save('repaired.mat', allVars{:})
+
 %% functions
 function [onDiff, offWait] = medianDiff(eventsTimestamp,eventsLine,eventsState, line)
 onDiff = diff(eventsTimestamp(eventsLine==line & eventsState==1));
