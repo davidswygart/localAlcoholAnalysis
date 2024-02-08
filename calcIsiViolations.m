@@ -1,17 +1,5 @@
-function calcIsiViolations(clusters)
+function clusters = calcIsiViolations(clusters)
 clusters.isiViolations = cellfun(@hillFormula, clusters.spikeTimes);
-end
-
-
-function hill = plotISI(spk)
-hill = cellfun(@calcISIHill, spk);
-histogram(log10(hill+0.00001), 20)
-ylabel('counts')
-xlim([-5.2,5])
-hold on
-L = ylim();
-plot([log10(0.5),log10(0.5)],[0,L(2)], '--r' )
-hold off
 end
 
 function hill = hillFormula(spk)
