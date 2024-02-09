@@ -4,7 +4,7 @@ allVars = who;
 figure(1)
 
 subplot(2,1,1)
-plot(eventsTimestamp)
+plot(events.timestamp)
 xlabel('timestamp #')
 ylabel('timestamp value (s)')
 hold on
@@ -12,7 +12,7 @@ plot([485000,491000,491000,485000,485000], [-4,-4,50,50,-4],'r')
 hold off
 
 subplot(2,1,2)
-plot(eventsTimestamp)
+plot(events.timestamp)
 xlabel('timestamp #')
 ylabel('timestamp value (s)')
 hold on
@@ -23,7 +23,7 @@ hold off
 
 %% which time delta is most common for each line
 
-times = eventsTimestamp(eventsLine==2 & eventsState==1);
+times = events.timestamp(events.line==2 & events.state==1);
 deltaT = diff(times);
 1/mode(round(deltaT,4))
 
@@ -37,8 +37,8 @@ Line identities
 %}
 
 %% How many times and how long are they stuck on -1
-isStuck = eventsTimestamp==-1;
-StuckCamera = isStuck(eventsLine==2 & eventsState==1);
+isStuck = events.timestamp==-1;
+StuckCamera = isStuck(events.line==2 & events.state==1);
 
 stuckStart = find(diff(StuckCamera) == 1);
 stuckStop = find(diff(StuckCamera) == -1);
@@ -56,19 +56,19 @@ histogram(timeBetweenDrops)
 ylabel('counts')
 xlabel('time between timestamp resets (s)')
 
-%& eventsLine==2 & eventsState==1);
+%& events.line==2 & events.state==1);
 %plot(isStuck)
 
 
 
 
 %% Where do breaks occur?
-% resetPointInds = find(diff(eventsTimestamp)<-0.5);
-% resumeNormalInds = find(diff(eventsTimestamp)>1.5);
-% fixedTimeStamps = eventsTimestamp;
+% resetPointInds = find(diff(events.timestamp)<-0.5);
+% resumeNormalInds = find(diff(events.timestamp)>1.5);
+% fixedTimeStamps = events.timestamp;
 % 
-% aOnTimes = eventsTimestamp(eventsLine==1 & eventsState==1);
-% aOnInds = find(eventsLine==1 & eventsState==1);
+% aOnTimes = events.timestamp(events.line==1 & events.state==1);
+% aOnInds = find(events.line==1 & events.state==1);
 % 
 % for rpi = 1:length(resetPointInds)
 %     lastGoodAOn = aOnTimes(aOnInds<resetPointInds(rpi));
@@ -88,63 +88,64 @@ xlabel('time between timestamp resets (s)')
 
 
 %% Get average camera framerates (time between on events and delay from on event to off event)
-[aOnDiff, aOffWait] = medianDiff(eventsTimestamp,eventsLine,eventsState, 1);
-[bOnDiff, bOffWait] = medianDiff(eventsTimestamp,eventsLine,eventsState, 2);
-[cOnDiff, cOffWait] = medianDiff(eventsTimestamp,eventsLine,eventsState, 3);
-fixedTimeStamps = eventsTimestamp;
+[aOnDiff, aOffWait] = medianDiff(events, 1);
+[bOnDiff, bOffWait] = medianDiff(events, 2);
+[cOnDiff, cOffWait] = medianDiff(events, 3);
+fixedTimeStamps = events.timestamp;
 
 % Simple reconstruct, just use last good value for each camera
-% aOnInds = eventsLine==1 & eventsState==1;
-% aOnVals = eventsTimestamp(aOnInds);
+% aOnInds = events.line==1 & events.state==1;
+% aOnVals = events.timestamp(aOnInds);
 % fixedTimeStamps(aOnInds) = repairWithDelta(aOnVals, aOnDiff);
-% aOffInds = eventsLine==1 & eventsState==0;
-% aOffVals = eventsTimestamp(aOffInds);
+% aOffInds = events.line==1 & events.state==0;
+% aOffVals = events.timestamp(aOffInds);
 % aOnVals = fixedTimeStamps(aOnInds);
 % fixedTimeStamps(aOffInds) = repairOffUsingON(aOnVals, aOffVals, aOffWait);
 
-bOnInds = eventsLine==2 & eventsState==1;
-bOnVals = eventsTimestamp(bOnInds);
+bOnInds = events.line==2 & events.state==1;
+bOnVals = events.timestamp(bOnInds);
 fixedTimeStamps(bOnInds) = repairWithDelta(bOnVals, bOnDiff);
-bOffInds = eventsLine==2 & eventsState==0;
-bOffVals = eventsTimestamp(bOffInds);
+bOffInds = events.line==2 & events.state==0;
+bOffVals = events.timestamp(bOffInds);
 bOnVals = fixedTimeStamps(bOnInds);
 fixedTimeStamps(bOffInds) = repairOffUsingON(bOnVals, bOffVals, bOffWait);
 
-% cOnInds = eventsLine==3 & eventsState==1;
-% cOnVals = eventsTimestamp(cOnInds);
+% cOnInds = events.line==3 & events.state==1;
+% cOnVals = events.timestamp(cOnInds);
 % fixedTimeStamps(cOnInds) = repairWithDelta(cOnVals, cOnDiff);
-% cOffInds = eventsLine==3 & eventsState==0;
-% cOffVals = eventsTimestamp(cOffInds);
+% cOffInds = events.line==3 & events.state==0;
+% cOffVals = events.timestamp(cOffInds);
 % cOnVals = fixedTimeStamps(cOnInds);
 % fixedTimeStamps(cOffInds) = repairOffUsingON(cOnVals, cOffVals, cOffWait);
 
 %% repair 
-goodInds =  eventsLine==2 ;
-%badInds = eventsLine==4 | eventsLine==8;
+goodInds =  events.line==2 ;
+%badInds = events.line==4 | events.line==8;
 
 % if(any(~(goodInds | badInds)))
 %     warning("I'm missing some inds somewhere")
 % end
 
-interpStamps = interp1(find(goodInds),fixedTimeStamps(goodInds), 1:length(eventsLine));
+interpStamps = interp1(find(goodInds),fixedTimeStamps(goodInds), 1:length(events.line));
 
 
 % check 1 Hz signal
-plot(diff(interpStamps(eventsLine==4 & eventsState==1)))
+clf
+plot(diff(interpStamps(events.line==4 & events.state==1)))
 
 %%
-eventsTimestamp = interpStamps;
+events.timestamp = interpStamps';
 save('repaired.mat', allVars{:})
 
 %% functions
-function [onDiff, offWait] = medianDiff(eventsTimestamp,eventsLine,eventsState, line)
-onDiff = diff(eventsTimestamp(eventsLine==line & eventsState==1));
+function [onDiff, offWait] = medianDiff(events, line)
+onDiff = diff(events.timestamp(events.line==line & events.state==1));
 onDiff = onDiff(onDiff>0 & onDiff<1);
 plot(onDiff)
 onDiff = mean(onDiff);
 
-offTimes = eventsTimestamp(eventsLine==line & eventsState==0);
-onTimes = eventsTimestamp(eventsLine==line & eventsState==1);
+offTimes = events.timestamp(events.line==line & events.state==0);
+onTimes = events.timestamp(events.line==line & events.state==1);
 
 if length(offTimes)<length(onTimes)
     onTimes = onTimes(1:end-1);
