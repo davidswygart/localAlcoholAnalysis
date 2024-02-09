@@ -42,7 +42,7 @@ end
 
 s.dropDeployed = bpodOFF(onLength==4);
 
-if abs(length(dropDeployed) - 60) > 1 %check of off by more than 1
+if abs(length(s.dropDeployed) - 60) > 1 %check of off by more than 1
     warning(['Expected 60 sipper drops. Only found ', num2str(length(dropDeployed))])
 end
 end
