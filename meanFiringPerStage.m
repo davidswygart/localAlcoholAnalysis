@@ -19,11 +19,17 @@ for i=1:nFiles
     for c=1:size(clusterInfo,1)
         spk = clusterInfo.spikeTimes{c};
         clusterInfo.matName{c} = mfileName;
-        clusterInfo.baselineSpikes{c} = sum(spk>bpodTimes.baselineStart & spk<bpodTimes.baselineStart+60*10)/(60*10);
-        clusterInfo.injectionSpikes{c} = sum(spk>bpodTimes.microInjectionStart & spk<bpodTimes.microInjectionStart+60*2)/(60*2);
-        clusterInfo.postInjectionSpikes{c} = sum(spk>bpodTimes.postInjectionStart & spk<bpodTimes.postInjectionStart+60*10)/(60*10);
-        clusterInfo.sipperSpikes{c} = sum(spk>bpodTimes.sipperStart & spk<bpodTimes.sipperStart+60*15)/(60*15);
-        clusterInfo.tailSpikes{c} = sum(spk>bpodTimes.tailStart & spk<bpodTimes.tailStart+60*10)/(60*10); 
+
+        cluseterInfo.stages{c} = {'baseline','injection','postInject','sipper','tail'};
+        avgSpk = nan(1,5);
+        avgSpk(1) = sum(spk>bpodTimes.baselineStart       & spk<bpodTimes.baselineStart+        60*10)/(60*10);
+        avgSpk(2) = sum(spk>bpodTimes.microInjectionStart & spk<bpodTimes.microInjectionStart+  60* 2)/(60* 2);
+        avgSpk(3) = sum(spk>bpodTimes.postInjectionStart  & spk<bpodTimes.postInjectionStart+   60*10)/(60*10);
+        avgSpk(4) = sum(spk>bpodTimes.sipperStart         & spk<bpodTimes.sipperStart+          60*15)/(60*15);
+        avgSpk(5) = sum(spk>bpodTimes.tailStart           & spk<bpodTimes.tailStart+            60*10)/(60*10); 
+
+
+        clusterInfo.avgSpk(c) = {avgSpk};
     end
     if size(clusterInfo,1) > 0
         allClusters = [allClusters;clusterInfo];
@@ -35,4 +41,4 @@ control = allClusters(ismember(allClusters.matName, group.matName(contains(group
 drink = allClusters(ismember(allClusters.matName, group.matName(contains(group.group, 'drink'))),:);
 inject = allClusters(ismember(allClusters.matName, group.matName(contains(group.group, 'injected'))),:);
 
-%avgControl = mean(table2array(control(:,"baselineSpikes","injectionSpikes","postInjectionSpikes","sipperSpikes","tailSpikes")));
+%control.avgSpk
