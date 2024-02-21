@@ -6,13 +6,13 @@ saveFolder = 'withOffset';
 %mkdir(saveFolder)
 
 
-bpodAfterSpikes = nan(nFiles,1);
-tLessThan0AfterOffset = nan(nFiles,1);
-hasNegative = nan(nFiles,1);
+bpodTooEarly = [];
+bpodTooLate = [];
+eventsHasNegative = [];
 
 for i=1:nFiles
     load(matFiles(i,:));
-    matFiles(i,:)
+    
 
     %events.timestamp = events.timestamp - offset(i);
     figure(1)
@@ -28,15 +28,22 @@ for i=1:nFiles
     plot(allspk,1:length(allspk))
     xlim([-500,4000])
 
+    if max(allspk) < max(events.timestamp(events.line==8))
+        warning('bpod events extend beyond spike times')
+        bpodTooLate = [bpodTooLate; matFiles(i,:)];
+    end
+
+    if min(allspk) > min(events.timestamp(events.line==8))
+        warning('bpod events start before spikes')
+        bpodTooEarly = [bpodTooEarly; matFiles(i,:)];
+    end
+
+    if min(events.timestamp) < 0
+        warning(['min event timestamp = ', num2str(min(events.timestamp))])
+        eventsHasNegative = [eventsHasNegative;matFiles(i,:)];
+    end
 
 
-    hasNegative(i) = min(events.timestamp) < 0;
-    bpodAfterSpikes(i) = max(events.timestamp(events.line==8)) > max(allspk);
-
-    min(allspk)
-
-    newT = events.timestamp - offset(i);
-    tLessThan0AfterOffset(i) = min(newT(events.line==8)) < 0;
 
     %save([saveFolder,filesep,matFiles(i,:)], "channel","clusterInfo","events","paramsFile","waveformsTime")
 end
