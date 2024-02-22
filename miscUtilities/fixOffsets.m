@@ -13,14 +13,15 @@ eventsHasNegative = [];
 for i=1:nFiles
     load(matFiles(i,:));
     
+    events = sortrows(events, "global_timestamp"); 
 
-    %events.timestamp = events.timestamp - offset(i);
+    %events.global_timestamp = events.global_timestamp - offset(i);
     figure(1)
-    plot(events.timestamp(1:200))
+    plot(events.global_timestamp(1:200))
 
     figure(2)
     subplot(2,1,1)
-    plot(events.timestamp(events.line==8), events.state(events.line==8))
+    plot(events.global_timestamp(events.line==8), events.state(events.line==8))
     xlim([-500,4000])
     
     subplot(2,1,2)
@@ -28,18 +29,18 @@ for i=1:nFiles
     plot(allspk,1:length(allspk))
     xlim([-500,4000])
 
-    if max(allspk) < max(events.timestamp(events.line==8))
+    if max(allspk) < max(events.global_timestamp(events.line==8))
         warning('bpod events extend beyond spike times')
         bpodTooLate = [bpodTooLate; matFiles(i,:)];
     end
 
-    if min(allspk) > min(events.timestamp(events.line==8))
+    if min(allspk) > min(events.global_timestamp(events.line==8))
         warning('bpod events start before spikes')
         bpodTooEarly = [bpodTooEarly; matFiles(i,:)];
     end
 
-    if min(events.timestamp) < 0
-        warning(['min event timestamp = ', num2str(min(events.timestamp))])
+    if min(events.global_timestamp) < 0
+        warning(['min event timestamp = ', num2str(min(events.global_timestamp))])
         eventsHasNegative = [eventsHasNegative;matFiles(i,:)];
     end
 
