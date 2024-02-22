@@ -21,6 +21,7 @@ Description of bpod event encoding
 
 bpodLine = 8; % digital IN line# on DAQ board getting trial signal from BPOD
 events = events(events.line == bpodLine, :);
+events = sortrows(events, "global_timestamp");
 
 if any(events.state(1:2:end) ~= 1) || any(events.state(2:2:end) ~= 0)
     error("bpod TTL state does not perfectly alternate between true-false")
