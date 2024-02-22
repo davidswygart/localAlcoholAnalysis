@@ -27,8 +27,8 @@ if any(events.state(1:2:end) ~= 1) || any(events.state(2:2:end) ~= 0)
     error("bpod TTL state does not perfectly alternate between true-false")
 end
 
-bpodON = events.timestamp(1:2:end);
-bpodOFF = events.timestamp(2:2:end);
+bpodON = events.global_timestamp(1:2:end);
+bpodOFF = events.global_timestamp(2:2:end);
 onLength = round(bpodOFF-bpodON, 1);
 
 s.baselineStart = bpodON(find(onLength==1, 1));
