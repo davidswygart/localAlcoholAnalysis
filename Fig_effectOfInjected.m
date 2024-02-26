@@ -33,7 +33,8 @@ avgInject =  mean(inject,1);
 stdInject =  std(inject,0, 1);
 semInject = stdInject / sqrt(size(inject,1));
 
-
+figure(1)
+clf
 shadedErrorBar(binEdges(1:end-1), avgControl,semControl, 'lineProps', 'b')
 hold on
 shadedErrorBar(binEdges(1:end-1), avgInject,semInject, 'lineProps', 'r')
