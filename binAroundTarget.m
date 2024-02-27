@@ -21,7 +21,9 @@ for i=1:size(c,1)
 end
 
 
-imagesc(spkCounts)
+%imagesc(spkCounts)
+
+
 % hold on
 % binWidth = binEdges(2) - binEdges(1);
 % y=[-5,0];
