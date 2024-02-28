@@ -10,12 +10,13 @@ binWidth=0.1;
 binEdges = -3:binWidth:15;
 
 %%
-includedValves = 20:40;
-spkCounts  = binAroundValve(allClusters, binEdges,'smooth');
+includedValves = 1:60;
+spkCounts  = binAroundValve(allClusters, binEdges);%,'smooth');
 spkCounts = mean(spkCounts(:,:,includedValves) ,3);
 
 spkRate = spkCounts / binWidth;
 spkZ = zscore(spkCounts,0, 2);
+%spkZ = spkRate;
 
 yname = 'zscore';
 control = spkZ(contains(allClusters.group,'control'), :);
