@@ -7,11 +7,11 @@ allClusters = allClusters(allClusters.isiViolations<1, :);
 
 %% choose bin width
 binWidth=0.1;
-binEdges = -2:binWidth:15;
+binEdges = -3:binWidth:15;
 
 %%
 includedValves = 20:40;
-spkCounts  = binAroundValve(allClusters, binEdges);
+spkCounts  = binAroundValve(allClusters, binEdges,'smooth');
 spkCounts = mean(spkCounts(:,:,includedValves) ,3);
 
 spkRate = spkCounts / binWidth;

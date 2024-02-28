@@ -15,7 +15,7 @@ binEdges = -200:binWidth:60*12;
 target = 'microInjectionStart';
  %% Choose spike rate or z score
 
-[spkCounts,  bpod]  = binAroundTarget(allClusters, target, binEdges);
+[spkCounts,  bpod]  = binAroundTarget(allClusters, target, binEdges, 'smooth');
 spkRate = spkCounts / binWidth;
 
 spkZ = zscore(spkCounts,0, 2);
