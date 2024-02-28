@@ -11,20 +11,30 @@ binWidth=10;
 % binEdges = -60*10:binWidth:60*25;
 % target = 'sipperStart';
 
-binEdges = -600:binWidth:60*12;
+binEdges = -200:binWidth:60*12;
 target = 'microInjectionStart';
-%%
+ %% Choose spike rate or z score
 
 [spkCounts,  bpod]  = binAroundTarget(allClusters, target, binEdges);
 spkRate = spkCounts / binWidth;
+
 spkZ = zscore(spkCounts,0, 2);
+yname = 'zscore';
+
+% isBaseline = binEdges(1:end-1) < 0;
+% baseline = spkCounts(:,isBaseline);
+% avgBaseline = mean(baseline,2);
+% %stdBaseline = std(baseline,0,2);
+% spkZ = (spkCounts-avgBaseline)./std(spkCounts,0,2);
+% yname = 'zscore (baseline subtracted)';
+
+% spkZ = spkCounts;
+% yname = 'spike count';
 
  %% Choose spike rate or z score
 control = spkZ(contains(allClusters.group,'control') | contains(allClusters.group,'drink'), :);
 inject = spkZ(contains(allClusters.group,'injected'), :);
-yname = 'zscore';
 
-%%
 avgControl = mean(control,1);
 stdControl = std(control,0, 1);
 semControl = stdControl / sqrt(size(control,1));
