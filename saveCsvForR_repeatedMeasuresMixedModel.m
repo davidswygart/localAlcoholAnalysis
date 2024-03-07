@@ -1,4 +1,4 @@
-function saveCsvForR_repeatedMeasuresMixedModel(mats,names)
+function saveCsvForR_repeatedMeasuresMixedModel(mats,names, fname)
     if length(names) < length(mats)
         error('Must enter 1 treatment name for each matrix')
     end
@@ -8,7 +8,7 @@ function saveCsvForR_repeatedMeasuresMixedModel(mats,names)
         t{i} = linearizeMat(mats{i},names{i});
     end
     finalTable = vertcat(t{:});
-    writetable(finalTable,'repeatedMeasures.csv')
+    writetable(finalTable,fname)
 end
 
 function out = linearizeMat(mat,name)

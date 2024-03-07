@@ -74,7 +74,7 @@ xlabel('time (s)')
 xlim([binEdges(1), binEdges(end)])
 hold off
 %%
-saveCsvForR_repeatedMeasuresMixedModel({control,inject},{"control","inject"})
+saveCsvForR_repeatedMeasuresMixedModel({control,inject},{"control","inject"}, 'effectOfInject.csv')
 %% perform ttests
 nTimepoints = size(control,2);
 pVals = nan(nTimepoints,1);
