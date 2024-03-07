@@ -46,6 +46,7 @@ x = binEdges(1:end-1);
 addShadedLine(x, control, 'b','Control')
 addShadedLine(x, drink, 'r', 'Drink')
 addShadedLine(x, inject, 'g', 'Inject')
+plot(xlim(), [0,0], '--k')
 
 legend()
 ylabel(yname)
