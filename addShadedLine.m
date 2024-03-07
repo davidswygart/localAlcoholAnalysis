@@ -1,4 +1,5 @@
 function h = addShadedLine(x, ymat, color, name)
+    ymat = squeeze(ymat);
     avg = mean(ymat,1);
     stdev = std(ymat,0, 1);
     n = size(ymat,1);
