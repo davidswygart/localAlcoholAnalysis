@@ -1,5 +1,4 @@
 %load("allClusters.mat")
-
 allClusters = allClusters(allClusters.fr>0.1, :);
 allClusters = allClusters(~contains(allClusters.phyLabel,'noise'), :);
 allClusters = allClusters(allClusters.presenceRatio>0.9, :);
@@ -74,7 +73,8 @@ ylabel(yname)
 xlabel('time (s)')
 xlim([binEdges(1), binEdges(end)])
 hold off
-
+%%
+saveCsvForR_repeatedMeasuresMixedModel({control,inject},{"control","inject"})
 %% perform ttests
 nTimepoints = size(control,2);
 pVals = nan(nTimepoints,1);
