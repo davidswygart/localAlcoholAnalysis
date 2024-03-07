@@ -21,42 +21,10 @@ spkCounts  = binAroundValve(allClusters, binEdges,'smooth');
 spkZ = zscore(spkCounts,0,2);
 spkZ = mean(spkZ(:,:,includedValves),3);
 
-
 yname = 'zscore';
 control = spkZ(contains(allClusters.group,'control'), :);
 drink  = spkZ(contains(allClusters.group,'drink'), :);
 inject = spkZ(contains(allClusters.group,'injected'), :);
-
-
-%%
-avgControl = mean(control,1);
-stdControl = std(control,0, 1);
-semControl = stdControl / sqrt(size(control,1));
-
-avgDrink = mean(drink,1);
-stdDrink = std(drink,0, 1);
-semDrink = stdDrink / sqrt(size(drink,1));
-
-avgInject = mean(inject,1);
-stdInject = std(inject,0, 1);
-semInject = stdInject / sqrt(size(inject,1));
-%% Figure 4 - spiking for all valves averaged 
-figure(4)
-clf
-title('Average spiking after valve open')
-shadedErrorBar(binEdges(1:end-1), avgControl,semControl, 'lineProps', 'b')
-hold on
-shadedErrorBar(binEdges(1:end-1), avgDrink,semDrink, 'lineProps', 'r')
-shadedErrorBar(binEdges(1:end-1), avgInject,semInject, 'lineProps', 'g')
-
-legend('control','drink','inject')
-ylabel(yname)
-xlabel('time (s)')
-xlim([binEdges(1), binEdges(end)])
-hold off
-
-%% save for stats in R
-%saveCsvForR_repeatedMeasuresMixedModel({control,drink,inject},{"control","drink","inject"},'averageAroundValve.csv')
 
 %% run multiple ttests
 nTimepoints = size(control,2);
@@ -69,9 +37,28 @@ for i=1:nTimepoints
 end
 h = fdr_bh(pVals);
 
+%% Figure 4 - spiking for all valves averaged 
+figure(4)
+clf
+title('Average spiking after valve open')
 hold on
 x = binEdges(1:end-1);
+addShadedLine(x, control, 'b','Control')
+addShadedLine(x, drink, 'r', 'Drink')
+addShadedLine(x, inject, 'g', 'Inject')
+
+legend()
+ylabel(yname)
+xlabel('time (s)')
+
+%plot statistically significant points
+x = binEdges(1:end-1);
+x = x(any(h,2));
 y = ylim();
 y = ones(length(x),1) * y(1);
-scatter(x(any(h,2)),y(any(h,2)),'*k')
+scatter(x,y,'*k')
 hold off
+
+%% save for stats in R
+%saveCsvForR_repeatedMeasuresMixedModel({control,drink,inject},{"control","drink","inject"},'averageAroundValve.csv')
+
