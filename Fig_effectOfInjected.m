@@ -74,3 +74,19 @@ ylabel(yname)
 xlabel('time (s)')
 xlim([binEdges(1), binEdges(end)])
 hold off
+
+%% perform ttests
+nTimepoints = size(control,2);
+pVals = nan(nTimepoints,1);
+for i=1:nTimepoints
+    [~,p]=ttest2(control(:,i), inject(:,i),'Vartype','unequal');
+    pVals(i) = p;
+end
+h = fdr_bh(pVals);
+
+hold on
+x = binEdges(1:end-1);
+y = ylim();
+y = ones(length(x),1) * y(1);
+scatter(x(h),y(h),'*k')
+hold off
