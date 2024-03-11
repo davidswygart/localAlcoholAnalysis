@@ -160,14 +160,14 @@ ylabel('zscore')
 %% spikes around injection (histogram of specific points)
 figure(6); clf
 t = tiledlayout(2,1,'TileSpacing','Compact','Padding','Compact');
-nbins = 50;
+binEdges_pntCompare = -2.4 :0.1: 5.4;
 
 nexttile
 t = 40;
 [~,tInd] = min(abs(binEdges - t));
-histogram(control(:,tInd),nbins)
+histogram(control(:,tInd),binEdges_pntCompare)
 hold on
-histogram(inject(:,tInd),nbins)
+histogram(inject(:,tInd),binEdges_pntCompare)
 legend('control','inject')
 ylabel('number of clusters')
 title(['Timepoint: ', num2str(t), 's'])
@@ -175,9 +175,9 @@ title(['Timepoint: ', num2str(t), 's'])
 nexttile
 t = 710;
 [~,tInd] = min(abs(binEdges - t));
-histogram(control(:,tInd),nbins)
+histogram(control(:,tInd),binEdges_pntCompare)
 hold on
-histogram(inject(:,tInd),nbins)
+histogram(inject(:,tInd),binEdges_pntCompare)
 legend('control','inject')
 ylabel('number of clusters')
 title(['Timepoint: ', num2str(t), 's'])
