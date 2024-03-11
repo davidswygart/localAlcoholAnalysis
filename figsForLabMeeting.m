@@ -137,4 +137,50 @@ title('Inject')
 xlabel('Time (10s bins)')
 
 
+%% spikes around injection (average)
+figure(5); clf
+x = binEdges(1:end-1);
+addShadedLine(x,control,'b','Control')
+hold on
+addShadedLine(x,inject,'r','Inject')
+
+plotBpod(bpod)
+xlim([binEdges(1), binEdges(end)])
+
+h = multipleTtest({control,inject});
+
+y = ylim();
+y = ones(length(x),1) * y(1);
+hold on
+scatter(x(h),y(h),'*k')
+legend('Control','Inject')
+xlabel('time (s)')
+ylabel('zscore')
+
+%% spikes around injection (histogram of specific points)
+figure(6); clf
+t = tiledlayout(2,1,'TileSpacing','Compact','Padding','Compact');
+nbins = 50;
+
+nexttile
+t = 40;
+[~,tInd] = min(abs(binEdges - t));
+histogram(control(:,tInd),nbins)
+hold on
+histogram(inject(:,tInd),nbins)
+legend('control','inject')
+ylabel('number of clusters')
+title(['Timepoint: ', num2str(t), 's'])
+
+nexttile
+t = 710;
+[~,tInd] = min(abs(binEdges - t));
+histogram(control(:,tInd),nbins)
+hold on
+histogram(inject(:,tInd),nbins)
+legend('control','inject')
+ylabel('number of clusters')
+title(['Timepoint: ', num2str(t), 's'])
+xlabel('zscore')
+
 
