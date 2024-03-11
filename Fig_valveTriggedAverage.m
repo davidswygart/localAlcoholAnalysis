@@ -14,12 +14,12 @@ includedValves = 1:60;
 spkCounts  = binAroundValve(allClusters, binEdges,'smooth');
 
 % average and then zscore (control peaks at 0.6 std)
-%spkAvg = mean(spkCounts(:,:,includedValves) ,3);
-%spkZ = zscore(spkAvg,0, 2);
+spkAvg = mean(spkCounts(:,:,includedValves) ,3);
+spkZ = zscore(spkAvg,0, 2);
 
 % zscore and then average (control peaks at 0.1 std)
-spkZ = zscore(spkCounts,0,2);
-spkZ = mean(spkZ(:,:,includedValves),3);
+% spkZ = zscore(spkCounts,0,2);
+% spkZ = mean(spkZ(:,:,includedValves),3);
 
 yname = 'zscore';
 control = spkZ(contains(allClusters.group,'control'), :);
