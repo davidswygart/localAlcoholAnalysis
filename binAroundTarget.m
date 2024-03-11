@@ -26,29 +26,4 @@ for i=1:size(c,1)
     end
     spkCounts(i,:) = count;
 end
-
-
-%imagesc(spkCounts)
-
-
-% hold on
-% binWidth = binEdges(2) - binEdges(1);
-% y=[-5,0];
-% x = bpod.microInjectionStart/binWidth;
-% plot([x,x], y,'r')
-% text(x,y(1), 'inj')
-% x = bpod.sipperStart/binWidth;
-% plot([x,x], y, 'r')
-% text(x,y(1), 'sip')
-% x = bpod.tailStart/binWidth;
-% plot([x,x], y, 'r')
-% text(x,y(1), 'tail')
-% x = bpod.postInjectionStart/binWidth;
-% plot([x,x], y, 'r')
-% text(x,y(1), 'post-inj')
-% 
-% x = bpod.dropDeployed/binWidth;
-% y = ones(length(x),1) * -5 ;
-% scatter(x,y, 'r*')
-% hold off
 end
