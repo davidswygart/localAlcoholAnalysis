@@ -4,6 +4,7 @@ goodClusters = goodClusters(goodClusters.fr>0.1, :);
 goodClusters = goodClusters(~contains(goodClusters.phyLabel,'noise'), :);
 goodClusters = goodClusters(goodClusters.presenceRatio>0.9, :);
 goodClusters = goodClusters(goodClusters.isiViolations<1, :);
+goodClusters = sortrows(goodClusters, "fr", 'descend');
 
 %% Give example heatmaps for specific mice (spike count)
 binWidth=0.1;
@@ -136,7 +137,7 @@ plotSpikeHeatmapWithBpod(inject, binEdges, bpod, cLabel,cRange)
 title('Inject')
 xlabel('Time (10s bins)')
 
-
+saveas(gcf, 'injection_heatmap.svg')
 %% spikes around injection (average)
 figure(5); clf
 x = binEdges(1:end-1);
@@ -157,6 +158,7 @@ legend('Control','Inject')
 xlabel('time (s)')
 ylabel('zscore')
 
+saveas(gcf, 'injection_mean.svg')
 %% spikes around injection (histogram of specific points)
 figure(6); clf
 t = tiledlayout(2,1,'TileSpacing','Compact','Padding','Compact');
@@ -183,4 +185,5 @@ ylabel('number of clusters')
 title(['Timepoint: ', num2str(t), 's'])
 xlabel('zscore')
 
+saveas(gcf, 'injection_timepointHistogram.svg')
 
