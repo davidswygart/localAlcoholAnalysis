@@ -1,10 +1,10 @@
 %% filter out bad clusters
-goodClusters = allClusters;
-goodClusters = goodClusters(goodClusters.fr>0.1, :);
-goodClusters = goodClusters(~contains(goodClusters.phyLabel,'noise'), :);
-goodClusters = goodClusters(goodClusters.presenceRatio>0.9, :);
-goodClusters = goodClusters(goodClusters.isiViolations<1, :);
-goodClusters = sortrows(goodClusters, "fr", 'descend');
+% goodClusters = allClusters;
+% goodClusters = goodClusters(goodClusters.fr>0.1, :);
+% goodClusters = goodClusters(~contains(goodClusters.phyLabel,'noise'), :);
+% goodClusters = goodClusters(goodClusters.presenceRatio>0.9, :);
+% goodClusters = goodClusters(goodClusters.isiViolations<1, :);
+% goodClusters = sortrows(goodClusters, "fr", 'descend');
 
 %% Give example heatmaps for specific mice (spike count)
 binWidth=0.1;
@@ -154,15 +154,18 @@ y = ylim();
 y = ones(length(x),1) * y(1);
 hold on
 scatter(x(h),y(h),'*k')
-legend('Control','Inject')
+
 xlabel('time (s)')
 ylabel('zscore')
+plot(xlim(), [0,0], '--k')
+
+legend('Control','Inject')
 
 saveas(gcf, 'injection_mean.svg')
 %% spikes around injection (histogram of specific points)
 figure(6); clf
 t = tiledlayout(2,1,'TileSpacing','Compact','Padding','Compact');
-binEdges_pntCompare = -2.4 :0.1: 5.4;
+binEdges_pntCompare = -2.4 :0.3: 5.4;
 
 nexttile
 t = 40;
@@ -187,3 +190,115 @@ xlabel('zscore')
 
 saveas(gcf, 'injection_timepointHistogram.svg')
 
+%% Spikes Around Drinking - heatmap
+binWidth=0.1;
+binEdges = -200:binWidth:60*22;
+target = 'sipperStart';
+cLabel = 'zscore';
+cRange = [-.5,8];
+
+[spkCounts,  bpod]  = binAroundTarget(goodClusters, target, binEdges, 'smooth');
+spkZ = zscore(spkCounts,0, 2);
+
+isControl = contains(goodClusters.group,'control');
+control = spkZ(isControl,:);
+isDrink = contains(goodClusters.group,'drink');
+drink = spkZ(isDrink,:);
+isInject = contains(goodClusters.group,'inject');
+inject = spkZ(isInject,:);
+
+figure(8); clf
+t = tiledlayout(3,1,'TileSpacing','Compact','Padding','Compact');
+
+nexttile
+plotSpikeHeatmapWithBpod(control, binEdges, bpod, cLabel,cRange)
+set(gca,'xticklabel',{[]})
+title('Control')
+
+nexttile
+plotSpikeHeatmapWithBpod(drink, binEdges, bpod, cLabel,cRange)
+title('Drink')
+
+nexttile
+plotSpikeHeatmapWithBpod(inject, binEdges, bpod, cLabel,cRange)
+title('Inject')
+xlabel('Time (0.1s bins)')
+
+saveas(gcf, 'Sipping_heatmap.svg')
+
+%% Spikes around Drinking - mean
+figure(9); clf
+x = binEdges(1:end-1);
+addShadedLine(x,control,'b','Control')
+hold on
+addShadedLine(x,drink,'r','Drink')
+addShadedLine(x,inject,'g','Inject')
+
+plotBpod(bpod)
+xlim([binEdges(1), binEdges(end)])
+
+legend('Control','Drink','Inject')
+xlabel('time (s)')
+ylabel('zscore')
+
+saveas(gcf, 'Sipper_mean.svg')
+
+%% Spikes around sipper valve
+binWidth=0.1;
+binEdges = -1:binWidth:14;
+spkCounts  = binAroundValve(goodClusters, binEdges,'smooth');
+spkAvg = mean(spkCounts ,3);
+spkZ = zscore(spkAvg,0, 2);
+
+isControl = contains(goodClusters.group,'control');
+control = spkZ(isControl,:);
+isDrink = contains(goodClusters.group,'drink');
+drink = spkZ(isDrink,:);
+isInject = contains(goodClusters.group,'inject');
+inject = spkZ(isInject,:);
+
+%% Spikes around sipper valve - heatmap
+figure(10); clf
+t = tiledlayout(3,1,'TileSpacing','Compact','Padding','Compact');
+
+nexttile
+plotSpikeHeatmapWithBpod(control, binEdges, [], cLabel,cRange)
+x = [(0-binEdges(1))/binWidth, (10.1-binEdges(1))/binWidth];
+scatter(x, [0,0], 'r*')
+yL = ylim();
+ylim([0,yL(2)])
+set(gca,'xticklabel',{[]})
+title('Control')
+
+nexttile
+plotSpikeHeatmapWithBpod(drink, binEdges, [], cLabel,cRange)
+scatter(x, [0,0], 'r*')
+yL = ylim();
+ylim([0,yL(2)])
+set(gca,'xticklabel',{[]})
+title('Drink')
+
+nexttile
+plotSpikeHeatmapWithBpod(inject, binEdges, [], cLabel,cRange)
+scatter(x, [0,0], 'r*')
+yL = ylim();
+ylim([0,yL(2)])
+title('Inject')
+xlabel('Time (0.1s bins)')
+
+saveas(gcf, 'valvesHeatmap.svg')
+
+%% Spikes around sipper valve - mean
+figure(11); clf
+title('Average spiking after valve open')
+hold on
+x = binEdges(1:end-1);
+addShadedLine(x, control, 'b','Control')
+addShadedLine(x, drink, 'r', 'Drink')
+addShadedLine(x, inject, 'g', 'Inject')
+plot(xlim(), [0,0], '--k')
+
+legend('Control', 'Drink', 'Inject')
+ylabel('zscore')
+xlabel('time (s)')
+saveas(gcf, 'valvesMean.svg')
