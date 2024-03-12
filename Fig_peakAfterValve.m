@@ -1,18 +1,20 @@
 %load("allClusters.mat")
-allClusters = allClusters(allClusters.fr>0.1, :);
-allClusters = allClusters(~contains(allClusters.phyLabel,'noise'), :);
-allClusters = allClusters(allClusters.presenceRatio>0.9, :);
-allClusters = allClusters(allClusters.isiViolations<1, :);
+% goodClusters = allClusters;
+% goodClusters = goodClusters(goodClusters.fr>0.1, :);
+% goodClusters = goodClusters(~contains(goodClusters.phyLabel,'noise'), :);
+% goodClusters = goodClusters(goodClusters.presenceRatio>0.9, :);
+% goodClusters = goodClusters(goodClusters.isiViolations<1, :);
+% goodClusters = sortrows(goodClusters, "fr", 'descend');
 %%
-isControl = contains(allClusters.group,'control');
-isDrink =  contains(allClusters.group,'drink');
-isInject = contains(allClusters.group,'inject');
+isControl = contains(goodClusters.group,'control');
+isDrink =  contains(goodClusters.group,'drink');
+isInject = contains(goodClusters.group,'inject');
 %% choose bin width
 binWidth=0.1;
 binEdges = -1:binWidth:14;
 
 %%
-spkCounts  = binAroundValve(allClusters, binEdges,'smooth');
+spkCounts  = binAroundValve(goodClusters, binEdges,'smooth');
 
 %% Group by N valves 
 valveBinning = 10;
@@ -26,7 +28,7 @@ end
 spkZ = zscore(clumped,0,2);
 
 %% figure 6 plot spike train for various clumps of valves
-figure(6)
+figure(12)
 clf
 x = binEdges(1:end-1);
 limx = [-1,6];
@@ -78,16 +80,16 @@ plot(xlim(), [0,0], '--k')
 title('valves 51-60')
 xlabel('time (s)')
 xlim(limx)
-legend()
+legend('Control','Drink','Inject')
 hold off
-
+saveas(gcf, 'valvesClumpedExamples.svg')
 %% Pull out peak Inh and Exc Values
 excWindow = val2Ind(binEdges, [0.3, 0.9]); %time where zscore is >0.5 for any trace in Fig 4
 exc = squeeze(mean(spkZ(:,excWindow(1):excWindow(2),:), 2));
 inhWindow = val2Ind(binEdges, [1.6,3.2]); %time where zscore is <-0.5 for any trace in Fig 4
 inh = squeeze(mean(spkZ(:,inhWindow(1):inhWindow(2),:), 2));
 %% figure 5
-figure(5)
+figure(13)
 clf
 
 subplot(2,1,1)
@@ -111,6 +113,8 @@ legend('control', 'drink', 'inject')
 xlabel('valve #')
 ylabel('zscore')
 hold off
+
+saveas(gcf, 'valvesPeaks.svg')
 %% save for stats in R
 saveCsvForR_repeatedMeasuresMixedModel( ...
     {exc(isControl,:),exc(isDrink,:),exc(isInject,:)}, ...
