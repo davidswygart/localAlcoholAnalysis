@@ -1,5 +1,4 @@
-g = load("C:\Users\david\OneDrive - Indiana University\localAlcohol\ephysData\group.mat");
-group = g.group;
+%load("C:\Users\david\OneDrive - Indiana University\localAlcohol\ephysData\group.mat");
 group.mlPerkg = 1000 * group.fluidConsumed ./ group.mouseWeight;
 
 control = group(contains(group.group,'control'),:);
@@ -11,7 +10,7 @@ dat.control = control.mlPerkg;
 dat.injected = injected.mlPerkg;
 dat.drink = drink.mlPerkg;
 
-figure(2)
+figure(7)
 clf
 subplot(2,1,1)
 violinplot(dat, {},'ShowMean', true, 'ShowMedian', false, 'ShowBox',true)
@@ -33,18 +32,56 @@ ylabel('brain alcohol (mg%)')
 oldXlim = xlim();
 xlim([0,oldXlim(2)]+.1)
 
+hold on
+
+
+
+%%
 
 x = x(~isnan(y));
 y = y(~isnan(y));
 
-[p,s] = polyfit(x,y,1);
+p = polyfit(x,y,1);
 
 fity = polyval(p,x);
 
 hold on
-plot(x,fity, '-')
-TSS = sum((mean(y)-y).^2);
-RSS = sum((fity-y).^2);
-R_squared = 1 - RSS/TSS;
+newX = [min(x),max(x)];
+
+plot(newX,polyval(p,newX), 'r--')
+
+R_squared = corr(polyval(p,x),y)^2;
 text(.5,40,['R^2 = ',num2str(R_squared,2)])
 hold off
+
+saveas(gcf, 'consumedVsBlood.svg')
+
+%%
+
+
+
+%%
+x = group.brainAlcohol;
+x(isnan(x)) = 0;
+y = group.numGoodClusters;
+figure(666); clf
+scatter(x,y,'k','filled')
+xlabel('brain alcohol (mg%)')
+ylabel('number of "good" clusters')
+p = polyfit(x,y,1);
+newX = [0,80];
+fitY = polyval(p,newX);
+
+hold on
+plot(newX,fitY, 'r--')
+
+R_squared = corr(polyval(p,x),y)^2;
+text(40,30,['R^2 = ',num2str(R_squared,2)])
+hold off
+
+
+%%
+% group.numGoodClusters(:) = nan;
+% for r = 1:size(group,1)
+%     group.numGoodClusters(r) = sum(contains(goodClusters.matName, group.matName(r)));
+% end
