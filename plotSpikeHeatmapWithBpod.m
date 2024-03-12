@@ -16,6 +16,10 @@ function plotSpikeHeatmapWithBpod(spk, binEdges, bpod, cLabel, cRange)
 
     hold on
 
+    if isempty(bpod)
+        return
+    end
+
     %% get bpod times (s) and convert to units of bin time
     binWidth = binEdges(2) - binEdges(1);
     baseline = (bpod.baselineStart - binEdges(1))/ binWidth;

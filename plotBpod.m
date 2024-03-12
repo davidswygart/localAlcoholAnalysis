@@ -45,6 +45,10 @@ function plotBpod(bpod)
     plot([sip,sip], y,'r')
     plot([tail,tail], y,'r')
 
+    %% plot valve openings
+    yStar = zeros(length(drop),1) + y(2);
+    scatter(drop,yStar, 'r.')
+
     %% plot bpod labels
     y = y(1);
     x = (inj - baseline)/2 + baseline;
@@ -62,9 +66,7 @@ function plotBpod(bpod)
     x = (tailEnd-tail)/2 + tail;
     text(x,y, 'post-Sip',HorizontalAlignment='center')
 
-    %% plot valve openings
-    y = zeros(length(drop),1) + .4;
-    scatter(drop,y, 'r.')
+
 
     %%
     hold off
