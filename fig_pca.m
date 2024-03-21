@@ -1,7 +1,8 @@
 %% spikes around injection 
 binWidth=10;
-binEdges = (-60*10):binWidth:(60*12);
+%binEdges = (-60*10):binWidth:(60*12);
 target = 'microInjectionStart';
+binEdges = -200:binWidth:60*12;
 cLabel = 'zscore';
 cRange = [-.4,6];
 
@@ -94,21 +95,21 @@ figure(5);clf
 
 hold on
 dist = goodClusters.distFromInj(isControl);
-pc2 = abs(coeff(isControl,2));
+pc2 = coeff(isControl,2);
 
 
 scatter(dist, pc2, 'b.')
 [rho_c,p_c] = corr(dist,pc2,'Type', 'Pearson');
 
 dist = goodClusters.distFromInj(isInject);
-pc2 = abs(coeff(isInject,2));
+pc2 = coeff(isInject,2);
 scatter(dist,pc2, 'r.')
 [rho_i,p_i] = corr(dist,pc2,'Type', 'Pearson');
 
 plot(xlim,[0,0], 'k--')
 
 xlabel('Distance from injection')
-ylabel('Absolute PC2 loading (coeff)')
+ylabel('PC2 loading (coeff)')
 legend( ...
     ['Control: rho=',num2str(rho_c,2),', p=', num2str(p_c,2)], ...
     ['Inject: rho=',num2str(rho_i,2),', p=', num2str(p_i,2)] ...
