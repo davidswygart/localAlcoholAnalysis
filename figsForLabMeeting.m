@@ -4,6 +4,7 @@
 % goodClusters = goodClusters(~contains(goodClusters.phyLabel,'noise'), :);
 % goodClusters = goodClusters(goodClusters.presenceRatio>0.9, :);
 % goodClusters = goodClusters(goodClusters.isiViolations<1, :);
+% goodClusters = goodClusters(goodClusters.depth<1100,:);
 % goodClusters = sortrows(goodClusters, "fr", 'descend');
 
 %% Give example heatmaps for specific mice (spike count)
