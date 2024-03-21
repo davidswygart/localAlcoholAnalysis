@@ -1,17 +1,10 @@
-
-bubble_cubicMicrons = 5e8; % 0.5 uL
-rMin = 108/2; %% ID of 33G needle
-rMax = (3*bubble_cubicMicrons/4/pi)^(1/3);
-
 tstep = 5;
 tMax = 60*12;
 tStop = 60*2;
-d = 1600; % um2 / s (free in water)
-%d = 160;
-[conc, t] = runSim(tstep,tStop, tMax, d, rMin, rMax);
+d = 1600/3; % um2 / s (free in water)
+[conc, t, dist] = runSim(tstep,tStop, tMax, d);
 
-%% plot
-
+%% plot at different distances
 realConc =  conc*1436;
 figure(2); clf
 hold on
@@ -25,7 +18,36 @@ plot([120,120],ylim,'r--')
 legend('750 um', '1000 um', '1250 um')
 xlabel('Time (s)')
 ylabel('Concentration (mg/dL)')
-title('Diffusion coefficient  = ',num2str(d),' um2/s')
+title(['Diffusion coefficient  = ',num2str(d,3),' um2/s'])
+
+%% image peak alcohol concentration
+figure(3);clf
+peakConc = squeeze(max(realConc,[],1));
+imagesc(peakConc)
+c = colorbar;
+c.Label.String = 'Ethanol concentration (mg/dL)';
+
+%% plot peak alcohol concentration
+figure(4);clf
+
+yyaxis left
+histogram(goodClusters.distFromInj(contains(goodClusters.group,'inject')))
+ylabel('Cluster count (inject group)')
+
+
+hold on
+
+yyaxis right
+plot(dist(200,200:end),peakConc(200,200:end), 'LineWidth',2)
+xlim([0,2000])
+%xlim([500,1500])
+y_old = ylim;
+ylim([5,y_old(2)])
+set(gca, 'YScale', 'log')
+xlabel('Distance from injection (um)')
+ylabel('Peak ethanol concentration (mg/dL)')
+
+
 %% movie
 figure(1);clf
 for i=1:size(realConc,1)
@@ -41,10 +63,7 @@ for i=1:size(realConc,1)
 end
 
 %%
-function [conc, t] = runSim(tstep, tStop, tMax, d, rMin, rMax)
-    bubble_cubicMicrons = 5e8; % 0.5 uL
-    rFull = (3*bubble_cubicMicrons/4/pi)^(1/3);
-
+function [conc, t, dist2D] = runSim(tstep, tStop, tMax, d)
     mult=10;
     sigma = sqrt(2*d*tstep) / mult;
     [xD,yD,zD] = meshgrid(1:401); 
@@ -54,13 +73,17 @@ function [conc, t] = runSim(tstep, tStop, tMax, d, rMin, rMax)
     t = tstep:tstep:tMax;
     nInj = length(tstep:tstep:tStop);
 
-    r = linspace(rMin,rMax, length(t));
-    conc = nan(length(t),401,401);
+    fullSphere = 5e8; % 0.5 uL
+    rMax = (3*fullSphere/4/pi)^(1/3);
+    startingSphere = fullSphere/sum(t<tStop);
+    rMin =  (3*startingSphere/4/pi)^(1/3);
+    r = linspace(rMin,rMax, sum(t<tStop));
 
-    figure(1)
+    conc = nan(length(t),401,401);
+    figure(1); clf
     for i=1:length(t)
         if t(i)<tStop
-            injVal = sum(dists<rFull,'all') / sum(dists < r(i), 'all') / nInj;
+            injVal = sum(dists<rMax,'all') / sum(dists < r(i), 'all') / nInj;
             img(dists < r(i)) = img(dists < r(i)) + injVal;
         end
         img = imgaussfilt3(img, sigma, "Padding","replicate");
@@ -69,7 +92,6 @@ function [conc, t] = runSim(tstep, tStop, tMax, d, rMin, rMax)
         pause(0.01)
         conc(i,:,:) = img(:,:,200);
     end
+
+    dist2D = squeeze(dists(200,:,:));
 end
-
-
-
