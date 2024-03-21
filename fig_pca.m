@@ -17,24 +17,29 @@ xlabel('Time (10s bins)')
 
 %% Plot explained variance or Scree
 figure(2);clf
-plot(latent,'.-')
+% plot(latent,'.-')
 ylabel('Eigenvalue')
 bar(explained,'k');  
 % bar(cumsum(explained),'k');
-%ylabel('Explained variance (%)')
+ylabel('Explained variance (%)')
 xlabel('PC')
+xlim([.50,10.5])
 
 %% Plot PC pattern (score)
 figure(3); clf
+hold on
 
-pcs = 1:3;
-plot(binEdges(1:end-1), score(:,pcs));
-xlabel('Time (10s bins)'); ylabel('Z-score');
+x_time = binEdges(1:end-1) + (binEdges(2)-binEdges(1))/2;
+plot(x_time, score(:,1),'LineWidth',1.5,'Color',[.8,0,.2,.3]);
+plot(x_time, score(:,2),'LineWidth',2,'Color',[0,0,1,1]);
+plot(x_time, score(:,3),'LineWidth',1.5,'Color',[0,.8,.2,.3]);
+
+xlabel('Time (s)'); ylabel('Z-score');
 
 hold on
 plotBpod(bpod)
 
-legend({'PC1';'PC2';'PC3'})
+legend({'PC1';'PC2';'PC3'},'Location','southwest')
 xlim([binEdges(1), binEdges(end)])
 %% Identify groups
 isControl = contains(goodClusters.group,'control') | contains(goodClusters.group,'drink');
@@ -68,11 +73,11 @@ ylabel('Count (norm)')
 figure(4); clf
 [f,x] = ecdf(coeff(isControl,2));
 f(f>0.5) = 1 - f(f>0.5);
-plot(x,f)
+plot(x,f,'LineWidth',2,'Color','b')
 hold on
 [f,x] = ecdf(coeff(isInject,2));
 f(f>0.5) = 1 - f(f>0.5);
-plot(x,f)
+plot(x,f,'LineWidth',2,'Color','r')
 
 plot([0,0],[0,0.5], '--k')
 xlabel('PC2 loading (coeff)')
@@ -81,6 +86,36 @@ legend("Control", "Inject","Location","northwest")
 
 [h,p] = kstest2(coeff(isControl,2),coeff(isInject,2) );
 text(-.12,.25,['p=',num2str(p,2)])
+
+%% PC2 coeff correlation to distance from injection
+goodClusters = calcInjectionDist(goodClusters);
+
+figure(5);clf
+
+hold on
+dist = goodClusters.distFromInj(isControl);
+pc2 = abs(coeff(isControl,2));
+
+
+scatter(dist, pc2, 'b.')
+[rho_c,p_c] = corr(dist,pc2,'Type', 'Pearson');
+
+dist = goodClusters.distFromInj(isInject);
+pc2 = abs(coeff(isInject,2));
+scatter(dist,pc2, 'r.')
+[rho_i,p_i] = corr(dist,pc2,'Type', 'Pearson');
+
+plot(xlim,[0,0], 'k--')
+
+xlabel('Distance from injection')
+ylabel('Absolute PC2 loading (coeff)')
+legend( ...
+    ['Control: rho=',num2str(rho_c,2),', p=', num2str(p_c,2)], ...
+    ['Inject: rho=',num2str(rho_i,2),', p=', num2str(p_i,2)] ...
+    )
+
+
+%% %% old after meeting with Chris on Wed
 
 %% Plot spikes sorted by PC2
 [sortedCoeff,sortInd] = sort(coeff(:,2));
