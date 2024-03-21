@@ -25,7 +25,7 @@ figure(3);clf
 peakConc = squeeze(max(realConc,[],1));
 imagesc(peakConc)
 c = colorbar;
-c.Label.String = 'Ethanol concentration (mg/dL)';
+c.Label.String = 'Ethanol peak concentration (mg/dL)';
 
 %% plot peak alcohol concentration
 figure(4);clf
@@ -39,15 +39,42 @@ hold on
 
 yyaxis right
 plot(dist(200,200:end),peakConc(200,200:end), 'LineWidth',2)
-xlim([0,2000])
-%xlim([500,1500])
-y_old = ylim;
-ylim([5,y_old(2)])
-set(gca, 'YScale', 'log')
+% xlim([0,2000])
+xlim([550,1450])
+% y_old = ylim;
+% ylim([5,y_old(2)])
+% set(gca, 'YScale', 'log')
+ylim([0,300])
 xlabel('Distance from injection (um)')
 ylabel('Peak ethanol concentration (mg/dL)')
 
+%% image avg alcohol concentration
+figure(3);clf
+meanConc = squeeze(mean(realConc,1));
+imagesc(meanConc)
+c = colorbar;
+c.Label.String = 'Ethanol mean concentration (mg/dL)';
 
+%% plot avg alcohol concentration
+figure(4);clf
+
+yyaxis left
+histogram(goodClusters.distFromInj(contains(goodClusters.group,'inject')))
+ylabel('Cluster count (inject group)')
+
+
+hold on
+
+yyaxis right
+plot(dist(200,200:end),meanConc(200,200:end), 'LineWidth',2)
+xlim([0,2000])
+xlim([550,1450])
+% y_old = ylim;
+% ylim([1,y_old(2)])
+%set(gca, 'YScale', 'log')
+ylim([0,150])
+xlabel('Distance from injection (um)')
+ylabel('Average ethanol concentration (mg/dL)')
 %% movie
 figure(1);clf
 for i=1:size(realConc,1)
