@@ -3,9 +3,16 @@ tMax = 60*12;
 tStop = 60*2;
 d = 1600/3; % um2 / s (free in water)
 [conc, t, dist] = runSim(tstep,tStop, tMax, d);
-
-%% plot at different distances
 realConc =  conc*1436;
+%% Save data for later analysis
+diffusion = struct;
+diffusion.coeff = d;
+diffusion.conc = squeeze(realConc(:,200,200:end))';
+diffusion.dist = dist(200,200:end)';
+diffusion.time = [0,t];
+diffusion.conc = [zeros(size(diffusion.conc,1),1) , diffusion.conc]; %Add 0 concentration to time 0
+save('diffusion.mat', "diffusion")
+%% plot at different distances
 figure(2); clf
 hold on
 thisDist = 75;
