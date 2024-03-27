@@ -62,7 +62,7 @@ xlabel('time (s)')
 [coeff,score,latent,~,explained] = pca(spkZ'); % <-- Data are (time(bins) x neurons)
 
 %% Plot explained variance or Scree
-figure(2);clf
+figure(25);clf
 % plot(latent,'.-')
 ylabel('Eigenvalue')
 bar(explained,'k');  
@@ -161,7 +161,7 @@ plot([pc1_Thresh,pc1_Thresh], [0,.5], '-.k')
 legend("Control","Drink", "Inject","Location","northwest")
 
 %% PC2 loadings, split by group  (mountain plot)
-figure(6); clf
+figure(5); clf
 [f,x] = ecdf(coeff(isControl,2));
 f(f>0.5) = 1 - f(f>0.5);
 plot(x,f,'LineWidth',2,'Color','b')
@@ -187,7 +187,7 @@ text(-.09,.35,['CvD p=',num2str(p*2,2)])
 text(-.09,.32,['CvI p=',num2str(p*2,2)])
 
 %% PC3 loadings, split by group  (mountain plot)
-figure(6); clf
+figure(5); clf
 [f,x] = ecdf(coeff(isControl,3));
 f(f>0.5) = 1 - f(f>0.5);
 plot(x,f,'LineWidth',2,'Color','b')
@@ -213,7 +213,7 @@ text(-.13,.35,['CvD p=',num2str(p*2,2)])
 text(-.13,.32,['CvI p=',num2str(p*2,2)])
 
 %% PC4 loadings, split by group  (mountain plot)
-figure(6); clf
+figure(5); clf
 [f,x] = ecdf(coeff(isControl,4));
 f(f>0.5) = 1 - f(f>0.5);
 plot(x,f,'LineWidth',2,'Color','b')
@@ -286,3 +286,91 @@ set(gca,'xticklabel',{[]})
 title('Inject')
 ylabel('Valve number')
 xlabel('Time (0.1s bins)')
+
+%% Group by N valves 
+valveBinning = 10;
+clumped = nan(size(spkCounts,1),size(spkCounts,2),size(spkCounts,3)/valveBinning);
+for i=1:size(spkCounts,3)/valveBinning
+    ind1 = (i-1)*valveBinning+1;
+    ind2 = ind1 + valveBinning - 1;
+    clumped(:,:,i) = mean(spkCounts(:,:,ind1:ind2), 3);
+end
+
+spkZ_clumped = zscore(clumped,0,2);
+
+%% Plot traces for each valve opening, only heavy negative PC1 loaders, with clumped valves
+controlValves = spkZ_clumped(isControl & (coeff(:,1) < pc1_Thresh), :, :);
+controlValves = squeeze(mean(controlValves,1))';
+
+drinkValves = spkZ_clumped(isDrink & (coeff(:,1) < pc1_Thresh), :, :);
+drinkValves = squeeze(mean(drinkValves,1))';
+
+injectValves = spkZ_clumped(isInject & (coeff(:,1) < pc1_Thresh), :, :);
+injectValves = squeeze(mean(injectValves,1))';
+
+figure(6); clf
+t = tiledlayout(3,1,'TileSpacing','Compact','Padding','Compact');
+
+cLabel = 'zscore';
+cRange = [-1,1];
+
+nexttile
+plotSpikeHeatmapWithBpod(controlValves, binEdges, [], cLabel,cRange)
+x = [(0-binEdges(1))/binWidth, (10.1-binEdges(1))/binWidth];
+scatter(x, [0,0], 'r*')
+yL = ylim();
+ylim([0,yL(2)])
+set(gca,'xticklabel',{[]})
+title('Control')
+ylabel('Valve number')
+
+nexttile
+plotSpikeHeatmapWithBpod(drinkValves, binEdges, [], cLabel,cRange)
+x = [(0-binEdges(1))/binWidth, (10.1-binEdges(1))/binWidth];
+scatter(x, [0,0], 'r*')
+yL = ylim();
+ylim([0,yL(2)])
+set(gca,'xticklabel',{[]})
+title('Drink')
+ylabel('Valve number')
+
+nexttile
+plotSpikeHeatmapWithBpod(injectValves, binEdges, [], cLabel,cRange)
+x = [(0-binEdges(1))/binWidth, (10.1-binEdges(1))/binWidth];
+scatter(x, [0,0], 'r*')
+yL = ylim();
+ylim([0,yL(2)])
+set(gca,'xticklabel',{[]})
+title('Inject')
+ylabel('Valve number')
+xlabel('Time (0.1s bins)')
+
+%% Pull out peak Inh and Exc Values for heavy negative loaders
+%inhWindow = val2Ind(x_time, [1.6,3.2]); %time where zscore is <-0.5 for any trace in Fig 4
+inhWindow = val2Ind(x_time, [1.25,3.55]); %time below 0
+inh = squeeze(mean(spkZ_clumped(:,inhWindow(1):inhWindow(2),:), 2));
+
+
+figure(7);clf
+
+hold on
+title('"Inh" peak (1.6-3.2s after valve), heavy negative loaders only')
+addShadedLine([],inh(isControl & (coeff(:,1) < pc1_Thresh),:),'b','Control')
+addShadedLine([],inh(isDrink & (coeff(:,1) < pc1_Thresh),:),'r','Drink')
+addShadedLine([],inh(isInject & (coeff(:,1) < pc1_Thresh),:),'g','Inject')
+plot(xlim(), [0,0], '--k')
+legend('control', 'drink', 'inject')
+xlabel('Time (valve group #)')
+ylabel('zscore')
+hold off
+
+
+
+%%
+function vals = val2Ind(x, vals)
+    for i=1:length(vals)
+        [~,minInd]=min(abs(x-vals(i)));
+        vals(i)=minInd;
+    end
+end
+
