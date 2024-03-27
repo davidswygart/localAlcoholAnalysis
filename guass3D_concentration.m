@@ -1,7 +1,7 @@
-tstep = 5;
+tstep = 1;
 tMax = 60*12;
 tStop = 60*2;
-d = 1600/3; % um2 / s (free in water)
+d = 1200; % um2 / s diffusion constant in brain (Gonzalez, June 1998)
 [conc, t, dist] = runSim(tstep,tStop, tMax, d);
 realConc =  conc*1436;
 %% Save data for later analysis
@@ -93,7 +93,7 @@ for i=1:size(realConc,1)
     clim([1,1436])
     set(gca,'ColorScale','log')
     title([num2str(t(i)),'s'])
-    pause(0.02)
+    pause(0.01)
 end
 
 %%
