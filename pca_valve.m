@@ -288,7 +288,7 @@ ylabel('Valve number')
 xlabel('Time (0.1s bins)')
 
 %% Group by N valves 
-valveBinning = 10;
+valveBinning = 12;
 clumped = nan(size(spkCounts,1),size(spkCounts,2),size(spkCounts,3)/valveBinning);
 for i=1:size(spkCounts,3)/valveBinning
     ind1 = (i-1)*valveBinning+1;
@@ -298,14 +298,14 @@ end
 
 spkZ_clumped = zscore(clumped,0,2);
 
-%% Plot traces for each valve opening, only heavy negative PC1 loaders, with clumped valves
-controlValves = spkZ_clumped(isControl & (coeff(:,1) < pc1_Thresh), :, :);
+% Plot traces for each valve opening with clumped valves
+controlValves = spkZ_clumped(isControl, :, :);
 controlValves = squeeze(mean(controlValves,1))';
 
-drinkValves = spkZ_clumped(isDrink & (coeff(:,1) < pc1_Thresh), :, :);
+drinkValves = spkZ_clumped(isDrink, :, :);
 drinkValves = squeeze(mean(drinkValves,1))';
 
-injectValves = spkZ_clumped(isInject & (coeff(:,1) < pc1_Thresh), :, :);
+injectValves = spkZ_clumped(isInject, :, :);
 injectValves = squeeze(mean(injectValves,1))';
 
 figure(6); clf
@@ -345,7 +345,7 @@ title('Inject')
 ylabel('Valve number')
 xlabel('Time (0.1s bins)')
 
-%% Pull out peak Inh and Exc Values for heavy negative loaders
+%% Pull out peak Inh
 %inhWindow = val2Ind(x_time, [1.6,3.2]); %time where zscore is <-0.5 for any trace in Fig 4
 inhWindow = val2Ind(x_time, [1.25,3.55]); %time below 0
 inh = squeeze(mean(spkZ_clumped(:,inhWindow(1):inhWindow(2),:), 2));
@@ -354,17 +354,57 @@ inh = squeeze(mean(spkZ_clumped(:,inhWindow(1):inhWindow(2),:), 2));
 figure(7);clf
 
 hold on
-title('"Inh" peak (1.6-3.2s after valve), heavy negative loaders only')
-addShadedLine([],inh(isControl & (coeff(:,1) < pc1_Thresh),:),'b','Control')
-addShadedLine([],inh(isDrink & (coeff(:,1) < pc1_Thresh),:),'r','Drink')
-addShadedLine([],inh(isInject & (coeff(:,1) < pc1_Thresh),:),'g','Inject')
+title('"Inh" peak (1.6-3.2s after valve)')
+addShadedLine([],inh(isControl,:),'b','Control')
+addShadedLine([],inh(isDrink,:),'r','Drink')
+addShadedLine([],inh(isInject,:),'g','Inject')
 plot(xlim(), [0,0], '--k')
 legend('control', 'drink', 'inject')
 xlabel('Time (valve group #)')
 ylabel('zscore')
 hold off
 
+%% Spikes around sipper valve - mean
+figure(8); clf
+t = tiledlayout(3,1,'TileSpacing','Compact','Padding','Compact');
 
+nexttile
+hold on
+y = spkZ_clumped(isControl,:,1);
+addShadedLine(x_time, y, 'b','Control')
+y = spkZ_clumped(isDrink,:,1);
+addShadedLine(x_time, y, 'r', 'Drink')
+y = spkZ_clumped(isInject,:,1);
+addShadedLine(x_time, y, 'g', 'Inject')
+plot(xlim(), [0,0], '--k')
+ylabel('zscore')
+
+nexttile
+hold on
+y = spkZ_clumped(isControl,:,3);
+addShadedLine(x_time, y, 'b','Control')
+y = spkZ_clumped(isDrink,:,3);
+addShadedLine(x_time, y, 'r', 'Drink')
+y = spkZ_clumped(isInject,:,3);
+addShadedLine(x_time, y, 'g', 'Inject')
+plot(xlim(), [0,0], '--k')
+ylabel('zscore')
+
+nexttile
+hold on
+y = spkZ_clumped(isControl,:,5);
+addShadedLine(x_time, y, 'b','Control')
+y = spkZ_clumped(isDrink,:,5);
+addShadedLine(x_time, y, 'r', 'Drink')
+y = spkZ_clumped(isInject,:,5);
+addShadedLine(x_time, y, 'g', 'Inject')
+plot(xlim(), [0,0], '--k')
+ylabel('zscore')
+
+
+%legend('Control', 'Drink', 'Inject')
+
+xlabel('time (s)')
 
 %%
 function vals = val2Ind(x, vals)
