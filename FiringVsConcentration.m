@@ -154,9 +154,13 @@ xlabel('Distance from injection (um)')
 %% Cross correlation
 [r,lag] = xcorr(conc(1,:), spkZ(1,:));
 r = nan(size(conc,1), length(r));
+r_shuff = r;
 
 for i=1:size(conc,1)
     r(i,:) = xcorr(conc(i,:), spkZ(i,:), 'normalized');
+    spk_shuff = spkZ(i,randperm(size(spkZ,2)));
+    r_shuff(i,:) = xcorr(conc(i,:), spk_shuff, 'normalized');
+
 end
 
 %% Plot mean cross correlation (all)
@@ -164,7 +168,8 @@ figure(8); clf
 x = lag*binWidth;
 addShadedLine(x, r, 'k','All')
 hold on
-%ylim([0,1])
+addShadedLine(x, r_shuff, 'k--', 'Shuffled')
+% ylim([0,1])
 plot([0,0],ylim,'k--')
 plot(xlim,[0,0], 'k--')
 xlabel('Lag (s)')
@@ -176,6 +181,10 @@ x = lag*binWidth;
 addShadedLine(x, r(isControl,:), 'b','Control')
 hold on
 addShadedLine(x, r(isInject,:), 'r','Inject')
+
+addShadedLine(x, r_shuff(isControl,:), 'b--','Control')
+addShadedLine(x, r_shuff(isInject,:), 'r--','Inject')
+
 %ylim([0,1])
 plot([0,0],ylim,'k--')
 plot(xlim,[0,0], 'k--')
