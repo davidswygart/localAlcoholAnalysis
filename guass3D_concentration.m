@@ -2,7 +2,8 @@ tstep = 1;
 tMax = 60*12;
 tStop = 60*2;
 d = 1200; % um2 / s diffusion constant in brain (Gonzalez, June 1998)
-[conc, t, dist] = runSim(tstep,tStop, tMax, d);
+ek = 2/60; %Elimination rate constant (proportion eliminated / second)
+[conc, t, dist] = runSim(tstep,tStop, tMax, d, ek);
 realConc =  conc*1436;
 %% Save data for later analysis
 diffusion = struct;
@@ -23,6 +24,18 @@ thisDist = 125;
 plot(t, squeeze(realConc(:,200+thisDist,200)))
 plot([120,120],ylim,'r--')
 legend('750 um', '1000 um', '1250 um')
+xlabel('Time (s)')
+ylabel('Concentration (mg/dL)')
+title(['Diffusion coefficient  = ',num2str(d,3),' um2/s'])
+
+%% plot with and without elimination
+figure(3); clf
+hold on
+thisDist = 100;
+plot(t, squeeze(realConc_noElimination(:,200+thisDist,200)))
+plot(t, squeeze(realConc_withElimination(:,200+thisDist,200)))
+plot([120,120],ylim,'r--')
+legend('No elimination', 'With elimination')
 xlabel('Time (s)')
 ylabel('Concentration (mg/dL)')
 title(['Diffusion coefficient  = ',num2str(d,3),' um2/s'])
@@ -97,7 +110,7 @@ for i=1:size(realConc,1)
 end
 
 %%
-function [conc, t, dist2D] = runSim(tstep, tStop, tMax, d)
+function [conc, t, dist2D] = runSim(tstep, tStop, tMax, d, ek)
     mult=10;
     sigma = sqrt(2*d*tstep) / mult;
     [xD,yD,zD] = meshgrid(1:401); 
@@ -121,10 +134,11 @@ function [conc, t, dist2D] = runSim(tstep, tStop, tMax, d)
             img(dists < r(i)) = img(dists < r(i)) + injVal;
         end
         img = imgaussfilt3(img, sigma, "Padding","replicate");
+        img = img * exp(-ek*tstep);
         imagesc(squeeze(img(:,:,200)));colorbar;
         title([num2str(i),'/',num2str(length(t))])
-        pause(0.01)
         conc(i,:,:) = img(:,:,200);
+        pause(0.01)
     end
 
     dist2D = squeeze(dists(200,:,:));
