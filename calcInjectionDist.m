@@ -1,5 +1,5 @@
 function clusters = calcInjectionDist(clusters)
-angle = 60;
+angle = 75;
 
 needleOD = 210; % 33G OD in microns
 needleBevel = 12; % standard bevel angle of Hamilton Point style 4
