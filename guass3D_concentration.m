@@ -28,18 +28,6 @@ xlabel('Time (s)')
 ylabel('Concentration (mg/dL)')
 title(['Diffusion coefficient  = ',num2str(d,3),' um2/s'])
 
-%% plot with and without elimination
-figure(3); clf
-hold on
-thisDist = 100;
-plot(t, squeeze(realConc_noElimination(:,200+thisDist,200)))
-plot(t, squeeze(realConc_withElimination(:,200+thisDist,200)))
-plot([120,120],ylim,'r--')
-legend('No elimination', 'With elimination')
-xlabel('Time (s)')
-ylabel('Concentration (mg/dL)')
-title(['Diffusion coefficient  = ',num2str(d,3),' um2/s'])
-
 %% image peak alcohol concentration
 figure(3);clf
 peakConc = squeeze(max(realConc,[],1));
