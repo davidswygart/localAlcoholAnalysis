@@ -6,13 +6,6 @@ ek = 0.8/60; %Elimination rate constant (proportion eliminated / second)
 [conc, t, dist] = runSim(tstep,tStop, tMax, d, ek);
 realConc =  conc*1422;% mg/dL (1.8% v/v)
 
-% 5 - only in small sphere
-% 6 - only in big sphere
-% 2 - mean current sphere (well mixed)
-% 3 - small sphere + mean shell
-% 4 - add to current sphere
-% 7 - move from center to shell
-% 8 - move from center to just the outer shell
 %% Save data for later analysis
 diffusion = struct;
 diffusion.coeff = d;
@@ -105,7 +98,6 @@ for i=1:size(realConc,1)
     pause(0.01)
 end
 
-
 %%
 function [conc, t, dist2D] = runSim(tstep, tStop, tMax, d, ek)
     mult=10;
@@ -118,29 +110,19 @@ function [conc, t, dist2D] = runSim(tstep, tStop, tMax, d, ek)
     nInj = sum(t<tStop);
 
     fullSphere = 5e8; % volume of entire injection = 0.5 uL
-    startingSphere = fullSphere/sum(t<tStop); % volume injected per timestep
-    r = linspace(startingSphere,fullSphere,nInj); % current volume of the injection sphere at each injection timepoint
-    r = (3*r/4/pi) .^ (1/3); % current radius of the injected sphere at each injection timepoint
-
+    injectionSphere = fullSphere/nInj; % volume injected per timestep
+    r = (3*injectionSphere/4/pi) .^ (1/3); % radius of injection sphere
     isInjectedSphere = dists < r(1);
 
     conc = nan(length(t),401,401);
     figure(1); clf
     for i=1:length(t)
         if i<=nInj
-            % move ethanol from injection sphere to shell
-            massInInjectionSphere = sum(img(isInjectedSphere),'all'); % current mass of ethanol in the injection sphere
-            
-            isShell = (dists < r(i)) & ~isInjectedSphere; %shell to which we push mass from injection sphere
-            shellVolume = sum(isShell, 'all');
-            img(isShell) = img(isShell) + massInInjectionSphere/shellVolume;
-
-            % add new drop to injection sphere (get rid of mass we already moved from this sphere)
-            img(isInjectedSphere) = 1; %add drop of normalized concentration fluid
+            img(isInjectedSphere) = img(isInjectedSphere) + 1;
         end
-        %img = imgaussfilt3(img, sigma, "Padding","replicate");
-        %img = img * exp(-ek*tstep);
-        imagesc(squeeze(img(:,:,200)));colorbar;%clim([0,1.5])
+        img = imgaussfilt3(img, sigma, "Padding","replicate");
+        img = img * exp(-ek*tstep);
+        imagesc(squeeze(img(:,:,200)));colorbar;%clim([0,2])
         title([num2str(i),'/',num2str(length(t))])
         conc(i,:,:) = img(:,:,200);
         pause(0.01)
@@ -148,47 +130,3 @@ function [conc, t, dist2D] = runSim(tstep, tStop, tMax, d, ek)
 
     dist2D = squeeze(dists(200,:,:));
 end
-
-%%
-% function [conc, t, dist2D] = runSim(tstep, tStop, tMax, d, ek)
-%     mult=10;
-%     sigma = sqrt(2*d*tstep) / mult;
-%     [xD,yD,zD] = meshgrid(1:401); 
-%     dists = (sqrt((xD-200).^2 + (yD-200).^2 + (zD-200).^2)) * mult;
-%     img = zeros(401, 401, 401);
-% 
-%     t = tstep:tstep:tMax;
-%     nInj = sum(t<tStop);
-% 
-%     fullSphere = 5e8; % volume of entire injection = 0.5 uL
-%     startingSphere = fullSphere/sum(t<tStop); % volume injected per timestep
-%     r = linspace(startingSphere,fullSphere,nInj); % current volume of the injection sphere at each injection timepoint
-%     r = (3*r/4/pi) .^ (1/3); % current radius of the injected sphere at each injection timepoint
-% 
-%     isInjectedSphere = dists < r(1);
-%     injectedSphereVolume = sum(isInjectedSphere,'all');
-% 
-%     isFullSphere = dists < r(end);
-% 
-%     conc = nan(length(t),401,401);
-%     figure(1); clf
-%     for i=1:length(t)
-%         if i<=nInj
-%             % isCurrentSphere = dists<r(i);
-%             % currentSphereVolume = sum(isCurrentSphere,'all');
-%             % img(isCurrentSphere) = img(isCurrentSphere) + injectedSphereVolume/currentSphereVolume;
-% 
-%             % img(isInjectedSphere) = img(isInjectedSphere)+1;
-% 
-%             img(isFullSphere) = img(isFullSphere) + 1/nInj;
-%         end
-%         img = imgaussfilt3(img, sigma, "Padding","replicate");
-%         img = img * exp(-ek*tstep);
-%         imagesc(squeeze(img(:,:,200)));colorbar;%clim([0,2])
-%         title([num2str(i),'/',num2str(length(t))])
-%         conc(i,:,:) = img(:,:,200);
-%         pause(0.01)
-%     end
-% 
-%     dist2D = squeeze(dists(200,:,:));
-% end
