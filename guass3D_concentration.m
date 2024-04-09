@@ -3,6 +3,7 @@ tMax = 60*12;
 tStop = 60*2;
 d = 1200; % um2 / s diffusion constant in brain (Gonzalez, June 1998)
 ek = 0.8/60; %Elimination rate constant (proportion eliminated / second)
+ek = 2/60; %Elimination rate constant (proportion eliminated / second)
 [conc, t, dist] = runSim(tstep,tStop, tMax, d, ek);
 realConc =  conc*1422;% mg/dL (1.8% v/v)
 

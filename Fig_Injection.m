@@ -1,6 +1,8 @@
 %%
 figFolder = 'C:\Users\david\OneDrive - Indiana University\localAlcohol\Figures\1_Injection\matlabExports\';
-load("diffusion.mat")
+figFolder = 'C:\Users\dis006\OneDrive - Indiana University\localAlcohol\Figures\1_Injection\matlabExports\';
+d_lowEk = load("diffusion_ek0p8.mat");
+d_highEk = load("diffusion_ek2.mat");
 load("goodClusters.mat")
 %% spikes around injection 
 binWidth=10;
@@ -30,7 +32,7 @@ addShadedLine(x_time,spkZ(isInject,:),'r','Inject');
 plot(xlim(), [0,0], '--k')
 
 %plotBpod(bpod)
-xlim([binEdges(1), binEdges(end)])
+xlim([x_time(1), x_time(end)])
 
 xlabel('Time (s)')
 ylabel('zscore')
@@ -109,20 +111,43 @@ f.Position = [2,2,2,2];
 exportgraphics(gcf,[figFolder,'pca_loading.pdf'])
 
 
+
+%% Combine high and low ek diffusion estimates
+
+diffusion = struct;
+diffusion.time = d_highEk.diffusion.time;
+diffusion.dist = d_highEk.diffusion.dist;
+diffusion.conc_mean = (d_highEk.diffusion.conc + d_lowEk.diffusion.conc)/2;
+diffusion.conc_range = abs(d_highEk.diffusion.conc - d_lowEk.diffusion.conc)/2;
+
+
+%% Calculate the lowest 10%, median, and top 10% of cluster distances
+sortedDist = sort(goodClusters.distFromInj(contains(goodClusters.group,'inject')));
+sortedDist(round(length(sortedDist)*0.1))
+sortedDist(round(length(sortedDist)*0.5))
+sortedDist(round(length(sortedDist)*0.9))
+
 %% plot concentration at different distances
 figure(123); clf
 hold on
-thisDist = 39;%385 um
-plot(diffusion.time, diffusion.conc(thisDist,:))
-thisDist = 56;%560 um
-plot(diffusion.time, diffusion.conc(thisDist,:))
-thisDist = 78;%775 um
-plot(diffusion.time, diffusion.conc(thisDist,:))
+thisDist = 43;
+shadedErrorBar(diffusion.time, diffusion.conc_mean(thisDist,:), diffusion.conc_range(thisDist,:), ...
+    'LineProps', {'b-','LineWidth',1.5})
+
+thisDist = 53;
+shadedErrorBar(diffusion.time, diffusion.conc_mean(thisDist,:), diffusion.conc_range(thisDist,:), ...
+    'LineProps', {'g-','LineWidth',1.5})
+
+thisDist = 69;
+shadedErrorBar(diffusion.time, diffusion.conc_mean(thisDist,:), diffusion.conc_range(thisDist,:), ...
+    'LineProps', {'r-','LineWidth',1.5})
+
 plot([120,120],ylim,'r--')
 xlabel('Time (s)')
 ylabel('Concentration (mg/dL)')
+xlim([0,600])
 
-leg = legend('380 um', '560 um', '775 um');
+leg = legend('430 um', '530 um', '690 um');
 legend('boxoff')
 leg.ItemTokenSize = [5,4];
 f = gcf;
@@ -130,7 +155,48 @@ f.Units = "inches";
 f.Position = [2,2,2,2];
 exportgraphics(gcf,[figFolder,'concentration_atDistances.pdf'])
 
+%% plot histogram of cluster distances vs. peak concentration
+
+figure(123);clf
+hold on
+
+% Plot peak ethanol
+yyaxis left
+[peakConc, inds] = max(diffusion.conc_mean,[],2);
+linInd = sub2ind(size(diffusion.conc_mean), (1:length(inds))', inds);
+peakConc_range =  diffusion.conc_range(linInd);
+shadedErrorBar(diffusion.dist,peakConc,peakConc_range, ...
+        'LineProps', {'-k','LineWidth',1.5})
+ax = gca;
+ax.YColor = 'k';
+ylabel('Peak ethanol (mg/dL)','Color', 'k')
+% set(gca, 'YScale', 'log')
+ylim([0,400])
+
+% Plot Cluster distance
+yyaxis right
+b = 200:50:2000;
+histogram(goodClusters.distFromInj(contains(goodClusters.group,'inject')),b)
+% histogram(goodClusters.distFromInj,b)
+ylabel('Cluster count', 'Rotation',-90)
+% set(get(gca,'YLabel'),'Rotation',-90)
+% ylp = get(ylh, 'Position');
+% ext=get(y_h,'Extent');
+% set(y_h, 'Rotation',270, 'Position',ylp+[ext(3) 0 0])
+
+
+% Set X axis
+xlim([280,870])
+xlabel('Distance from injection (um)')
+
+
+f = gcf;
+f.Units = "inches";
+f.Position = [2,2,2,2];
+exportgraphics(gcf,[figFolder,'concentration_ClusterDistAndPeak.pdf'])
+
 %% Calculate predicted alcohol time per cluster
+diffusion.conc = diffusion.conc_mean;
 conc = calcConcentrationForCluster(goodClusters, diffusion, binEdges);
 
 figure(3); clf
@@ -180,33 +246,40 @@ legend("Control","Inject")
 %% Corelation to firing (stacked bar) for paper
 figure(123); clf
 stack = nan(3,2);
-stack(1,1) = sum((rho(isInject)<0) & (pval(isInject)<.05));
-stack(2,1) = sum(pval(isInject)>.05);
-stack(3,1) = sum((rho(isInject)>0) & (pval(isInject)<.05));
-stack(:,1) = stack(:,1) / sum(stack(:,1));
-
-stack(1,2) = sum((rho(isControl)<0) & (pval(isControl)<.05));
-stack(2,2) = sum(pval(isControl)>.05);
-stack(3,2) = sum((rho(isControl)>0) & (pval(isControl)<.05));
+stack(1,2) = sum(rho<0 & pval<.05 & isInject);
+stack(2,2) = sum(pval>.05 & isInject);
+stack(3,2) = sum(rho>0 & pval<.05 & isInject);
 stack(:,2) = stack(:,2) / sum(stack(:,2));
 
-groupNames = ["Inject","Control"];
+stack(1,1) = sum(rho<0 & pval<.05 & isControl);
+stack(2,1) = sum(pval>.05 & isControl);
+stack(3,1) = sum(rho>0 & pval<.05 & isControl);
+stack(:,1) = stack(:,1) / sum(stack(:,1));
+
+groupNames = ["Control","Inject"];
 x = categorical(groupNames);
 x = reordercats(x, groupNames);
-barh(x, stack', 'stacked')
+b = bar(x, stack', 'stacked', '');
+nCorrColor = 1 - [127,191,123]/255;
+b(1).FaceColor = nCorrColor;
+b(2).FaceColor = [.6,.6,.6];
+pCorrColor = 1 - [175,141,195]/255;
+b(3).FaceColor = pCorrColor;
 %ylim([0,sum(control_stack)])
-xlabel('Proportion of clusters')
 
-c = colororder;
-textY = 2.7;
-textX = stack(1,2)/2;
-text(textX,textY, '-Corr','HorizontalAlignment','center','Color',c(1,:),'FontSize',8)
-textX = stack(1,2) + stack(2,2)/2;
-text(textX,textY, 'NS','HorizontalAlignment','center','Color',c(2,:),'FontSize',8)
-textX = stack(1,2) + stack(2,2) + stack(3,2)/2;
-text(textX,textY, '+Corr','HorizontalAlignment','center','Color',c(3,:),'FontSize',8)
+
+% c = colororder;
+% textY = 2.7;
+% textX = stack(1,2)/2;
+% text(textX,textY, '-Corr','HorizontalAlignment','center','Color',c(1,:),'FontSize',8)
+% textX = stack(1,2) + stack(2,2)/2;
+% text(textX,textY, 'NS','HorizontalAlignment','center','Color',c(2,:),'FontSize',8)
+% textX = stack(1,2) + stack(2,2) + stack(3,2)/2;
+% text(textX,textY, '+Corr','HorizontalAlignment','center','Color',c(3,:),'FontSize',8)
 
 %ylim([.25,3])
+
+ylabel('Proportion of clusters')
 
 f = gcf;
 %hA = axes(f);
@@ -216,12 +289,60 @@ box off
 % set(hA, 'YTick', [], 'YTickLabel', []);
 % set(get(gca, 'XAxis'), 'Visible', 'off');
 % set(get(gca, 'YAxis'), 'Visible', 'off');
+% set(gca, "XTickLabel", [])
+xtickangle(45)
 
 f.Units = "inches";
-f.Position = [2,2,2,1.5];
+f.Position = [2,2,1,2];
 exportgraphics(gcf,[figFolder,'concentration_stackedBar.pdf'])
 
+%% plot mean firing for high and low correlation clusters (Control)
 
+figure(123); clf;
+hold on
+y = spkZ(rho<0 & pval<.05 & isControl,:);
+addShadedLine(x_time, y, {'Color', nCorrColor, 'Linewidth', 1},'NegativeCorrelation')
+
+y = spkZ(rho>0 & pval<.05 & isControl,:);
+addShadedLine(x_time, y, {'Color', pCorrColor, 'Linewidth', 1},'PositiveCorrelation')
+
+xlim([x_time(1), x_time(end)])
+plot([x_time(1), x_time(end)], [0,0], '--k')
+ylim([-1,2.5])
+
+% xlabel('Time (s)')
+set(gca, "XTick", [])
+ylabel(["Control","Z-score"])
+% title('Control')
+% leg = legend('Control','Inject','Location','best');
+% legend('boxoff')
+% leg.ItemTokenSize = [5,4];
+
+f.Units = "inches";
+f.Position = [2,2,2,1];
+exportgraphics(gcf,[figFolder,'Control_corr.pdf'])
+%% plot mean firing for high and low correlation clusters (Inject)
+figure(123); clf;
+hold on
+y = spkZ(rho<0 & pval<.05 & isInject,:);
+addShadedLine(x_time, y,{'Color', nCorrColor, 'Linewidth', 1},'NegativeCorrelation')
+
+y = spkZ(rho>0 & pval<.05 & isInject,:);
+addShadedLine(x_time, y,{'Color', pCorrColor, 'Linewidth', 1},'PositiveCorrelation')
+
+xlim([x_time(1), x_time(end)])
+plot([x_time(1), x_time(end)], [0,0], '--k')
+ylim([-1,2.5])
+xlabel('Time (s)')
+ylabel(["Inject","Z-score"])
+% title('Inject')
+% leg = legend('Control','Inject','Location','best');
+% legend('boxoff')
+% leg.ItemTokenSize = [5,4];
+
+f.Units = "inches";
+f.Position = [2,2,2,1.2];
+exportgraphics(gcf,[figFolder,'Inject_corr.pdf'])
 %% Scatter plot correlation vs distance
 figure(7); clf
 
@@ -248,9 +369,9 @@ r = nan(size(conc,1), length(r));
 r_shuff = r;
 
 for i=1:size(conc,1)
-    r(i,:) = xcorr(conc(i,:), spkZ(i,:), 'normalized');
+    r(i,:) = xcorr(spkZ(i,:), conc(i,:), 'normalized');
     spk_shuff = spkZ(i,randperm(size(spkZ,2)));
-    r_shuff(i,:) = xcorr(conc(i,:), spk_shuff, 'normalized');
+    r_shuff(i,:) = xcorr(spk_shuff,conc(i,:) ,'normalized');
 
 end
 
