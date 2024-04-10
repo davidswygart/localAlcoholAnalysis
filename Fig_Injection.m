@@ -1,6 +1,6 @@
 %%
 figFolder = 'C:\Users\david\OneDrive - Indiana University\localAlcohol\Figures\1_Injection\matlabExports\';
-figFolder = 'C:\Users\dis006\OneDrive - Indiana University\localAlcohol\Figures\1_Injection\matlabExports\';
+% figFolder = 'C:\Users\dis006\OneDrive - Indiana University\localAlcohol\Figures\1_Injection\matlabExports\';
 d_lowEk = load("diffusion_ek0p8.mat");
 d_highEk = load("diffusion_ek2.mat");
 load("goodClusters.mat")
@@ -130,6 +130,9 @@ diffusion.dist = d_highEk.diffusion.dist;
 diffusion.conc_mean = (d_highEk.diffusion.conc + d_lowEk.diffusion.conc)/2;
 diffusion.conc_range = abs(d_highEk.diffusion.conc - d_lowEk.diffusion.conc)/2;
 
+% 
+% diffusion.time = [-200, diffusion.time];
+% diffusion.conc_mean = cat(zeros(size(diffusion.conc_mean, 1),1), diffusion.conc_mean,1);
 
 %% Calculate the lowest 10%, median, and top 10% of cluster distances
 sortedDist = sort(goodClusters.distFromInj(contains(goodClusters.group,'inject')));
@@ -392,35 +395,32 @@ for i=1:size(conc,1)
 
 end
 
-%% Plot mean cross correlation (all)
-figure(8); clf
-x = lag*binWidth;
-addShadedLine(x, r, 'k')
-hold on
-addShadedLine(x, r_shuff, 'k--')
-% ylim([0,1])
-plot([0,0],ylim,'k--')
-plot(xlim,[0,0], 'k--')
-xlabel('Lag (s)')
-ylabel('Correlation: spiking vs concentration')
-
 %% Plot mean cross correlation (split by type)
-figure(8); clf
-x = lag*binWidth;
-addShadedLine(x, r(isControl,:), 'b')
+figure(123); clf
 hold on
-addShadedLine(x, r(isInject,:), 'r')
+x = lag*binWidth;
+addShadedLine(x, r(isControl,:), {'Color', controlColor});
+addShadedLine(x, r(isInject,:), {'Color', injectColor});
 
-addShadedLine(x, r_shuff(isControl,:), 'b--')
-addShadedLine(x, r_shuff(isInject,:), 'r--')
+addShadedLine(x, r_shuff(isControl,:), {'--', 'Color', (1-controlColor)*.3 + controlColor});
+addShadedLine(x, r_shuff(isInject,:), {'--', 'Color', (1-injectColor)*.3 + injectColor});
 
 %ylim([0,1])
-plot([0,0],ylim,'k--')
-plot(xlim,[0,0], 'k--')
+l=plot([0,0],ylim,'k-');
+%uistack(l, 'bottom');
+l = plot(xlim,[0,0], 'k-');
+%uistack(l, 'bottom');
 xlabel('Lag (s)')
-ylabel('Correlation: spiking vs concentration')
-legend("Control", "Inject")
+ylabel('Correlation')
+leg = legend("Control", "Inject", 'Location', 'southwest');
+legend('boxoff')
+leg.ItemTokenSize = [5,4];
+xlim([-800,800])
 
+f = gcf;
+f.Units = "inches";
+f.Position = [2,2,2,1.2];
+exportgraphics(gcf,[figFolder,'crossCorrelation.pdf'])
 %% Mountain plot of p-Value for specific lag
 lagPoint = -60;
 %lagPoint = -360;
