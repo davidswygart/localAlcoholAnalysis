@@ -1,5 +1,55 @@
 figFolder = 'C:\Users\david\OneDrive - Indiana University\localAlcohol\Figures\2_Sipper\matlabExports\';
+figFolder = 'C:\Users\dis006\OneDrive - Indiana University\localAlcohol\Figures\2_Sipper\matlabExports\';
 load("goodClusters.mat")
+
+controlColor = [64, 4, 86]/255;
+drinkColor = [3, 104, 67]/255;
+injectColor = [217,95,2]/255;
+
+isControl = contains(goodClusters.group,'control');
+isDrink = contains(goodClusters.group,'drink');
+isInject = contains(goodClusters.group,'inject');
+%% spikes around drinking 
+binWidth=10;
+%binEdges = (-60*10):binWidth:(60*12);
+target = 'sipperStart';
+binEdges = -4*60:binWidth:60*20;
+% binEdges = 0:binWidth:60*12;
+cLabel = 'zscore';
+cRange = [-.4,6];
+
+[spkCounts,  bpod]  = binAroundTarget(goodClusters, target, binEdges, 'smooth');
+spkZ = zscore(spkCounts,0, 2);
+
+figure(1); clf
+plotSpikeHeatmapWithBpod(spkZ, binEdges, bpod, cLabel,cRange)
+xlabel('Time (10s bins)')
+
+%% spikes around drinking (average)
+f = figure(123); clf
+hold on
+x_time = binEdges(1:end-1) + (binEdges(2)-binEdges(1))/2;
+addShadedLine(x_time,spkZ(isControl,:),{'Color', controlColor});
+addShadedLine(x_time,spkZ(isDrink,:),{'Color', drinkColor});
+addShadedLine(x_time,spkZ(isInject,:),{'Color', injectColor});
+plot(xlim(), [0,0], '--k')
+
+scatter(bpod.dropDeployed,ones(length(bpod.dropDeployed)), '.', 'MarkerEdgeColor',[.5,.5,.5])
+
+xlim([x_time(1), x_time(end)])
+ylim([-.8,1])
+
+xlabel('Time (s)')
+ylabel('Z-score')
+
+leg = legend('Control','Drink','Inject','Location','eastoutside');
+legend('boxoff')
+leg.ItemTokenSize = [5,4];
+
+f.Units = "inches";
+f.Position = [2,2,4,1.75];
+exportgraphics(gcf,[figFolder,'grandMean.pdf'])
+
 %% Spikes around sipper valve
 binWidth=0.1;
 binEdges = -1:binWidth:14;
@@ -7,11 +57,9 @@ spkCounts  = binAroundValve(goodClusters, binEdges,'smooth');
 spkAvg = mean(spkCounts ,3);
 spkZ = zscore(spkAvg,0, 2);
 
-isControl = contains(goodClusters.group,'control');
+
 control = spkZ(isControl,:);
-isDrink = contains(goodClusters.group,'drink');
 drink = spkZ(isDrink,:);
-isInject = contains(goodClusters.group,'inject');
 inject = spkZ(isInject,:);
 
 %% Spikes around sipper valve - heatmap
@@ -51,14 +99,14 @@ figure(123); clf
 title('Average spiking after valve open')
 hold on
 x_time = binEdges(1:end-1) + (binEdges(2)-binEdges(1))/2;
-addShadedLine(x_time, control, 'b','Control')
-addShadedLine(x_time, drink, 'r', 'Drink')
-addShadedLine(x_time, inject, 'g', 'Inject')
+addShadedLine(x_time, control, {'Color', controlColor})
+addShadedLine(x_time, drink, {'Color', drinkColor})
+addShadedLine(x_time, inject, {'Color', injectColor})
 plot(xlim(), [0,0], '--k')
 
 
-ylabel('zscore')
-xlabel('time (s)')
+ylabel('Z-score')
+xlabel('Time (s)')
 
 
 leg = legend('Control', 'Drink', 'Inject');
@@ -67,8 +115,8 @@ leg.ItemTokenSize = [5,4];
 
 f = gcf;
 f.Units = "inches";
-f.Position = [2,2,3,2];
-exportgraphics(gcf,[figFolder,'grandMean.pdf'])
+f.Position = [2,2,3,1.75];
+exportgraphics(gcf,[figFolder,'valveMean.pdf'])
 
 %% Group by N valves 
 valveBinning = 12;
@@ -94,7 +142,7 @@ injectValves = squeeze(mean(injectValves,1))';
 figure(6); clf
 t = tiledlayout(3,1,'TileSpacing','Compact','Padding','Compact');
 
-cLabel = 'zscore';
+cLabel = 'Z-score';
 cRange = [-1,1];
 
 nexttile
@@ -138,9 +186,9 @@ figure(7);clf
 
 hold on
 title('"Inh" peak (1.6-3.2s after valve)')
-addShadedLine([],inh(isControl,:),'b','Control')
-addShadedLine([],inh(isDrink,:),'r','Drink')
-addShadedLine([],inh(isInject,:),'g','Inject')
+addShadedLine([],inh(isControl,:), {'Color', controlColor})
+addShadedLine([],inh(isDrink,:),{'Color', drinkColor})
+addShadedLine([],inh(isInject,:),{'Color', injectColor})
 plot(xlim(), [0,0], '--k')
 legend('control', 'drink', 'inject')
 xlabel('Time (valve group #)')
@@ -154,13 +202,13 @@ figure(123); clf
 % nexttile
 hold on
 y = spkZ_clumped(isControl,:,1);
-addShadedLine(x_time, y, 'b','Control')
+addShadedLine(x_time, y, {'Color',controlColor})
 y = spkZ_clumped(isDrink,:,1);
-addShadedLine(x_time, y, 'r', 'Drink')
+addShadedLine(x_time, y, {'Color', drinkColor})
 y = spkZ_clumped(isInject,:,1);
-addShadedLine(x_time, y, 'g', 'Inject')
+addShadedLine(x_time, y, {'Color', injectColor})
 plot(xlim(), [0,0], '--k')
-ylabel('zscore')
+ylabel('Z-score')
 
 title('First 12 valve openings')
 
@@ -189,7 +237,7 @@ title('First 12 valve openings')
 
 %legend('Control', 'Drink', 'Inject')
 
-xlabel('time (s)')
+xlabel('Time (s)')
 
 % leg = legend('Control', 'Drink', 'Inject');
 % legend('boxoff')
@@ -292,27 +340,27 @@ legend('Control', 'Drink', 'Inject','Location','eastoutside')
 figure(123); clf
 [f,x] = ecdf(coeff(isControl,1));
 f(f>0.5) = 1 - f(f>0.5);
-plot(x,f,'LineWidth',2,'Color','b')
+plot(x,f,'LineWidth',1.5,'Color',controlColor)
 hold on
 
 [f,x] = ecdf(coeff(isDrink,1));
 f(f>0.5) = 1 - f(f>0.5);
-plot(x,f,'LineWidth',2,'Color','r')
+plot(x,f,'LineWidth',1.5,'Color',drinkColor)
 
 [f,x] = ecdf(coeff(isInject,1));
 f(f>0.5) = 1 - f(f>0.5);
-plot(x,f,'LineWidth',2,'Color','g')
+plot(x,f,'LineWidth',1.5,'Color', injectColor)
 
-plot([0,0],[0,0.5], '-k')
+plot([0,0],[0,0.5], '--k')
 xlabel('PC1 loading (coeff)')
 ylabel('Folded probability')
 legend("Control","Drink", "Inject","Location","northwest")
 
 [h,p] = kstest2(coeff(isControl,1),coeff(isDrink,1) );
-text(-.14,.4,['CvD p=',num2str(p*2,2)], 'FontSize',5)
+% text(-.14,.4,['CvD p=',num2str(p*2,2)], 'FontSize',5)
 
 [h,p] = kstest2(coeff(isControl,1),coeff(isInject,1) );
-text(-.14,.35,['CvI p=',num2str(p*2,2)], 'FontSize',5)
+% text(-.14,.35,['CvI p=',num2str(p*2,2)], 'FontSize',5)
 
 % pc1_Thresh = -.05;
 % plot([pc1_Thresh,pc1_Thresh], [0,.5], '-.k')
@@ -324,135 +372,6 @@ f = gcf;
 f.Units = "inches";
 f.Position = [2,2,2,2];
 exportgraphics(gcf,[figFolder,'pca_PC1Mountain.pdf'])
-
-%% PC2 loadings, split by group  (mountain plot)
-figure(5); clf
-[f,x] = ecdf(coeff(isControl,2));
-f(f>0.5) = 1 - f(f>0.5);
-plot(x,f,'LineWidth',2,'Color','b')
-hold on
-
-[f,x] = ecdf(coeff(isDrink,2));
-f(f>0.5) = 1 - f(f>0.5);
-plot(x,f,'LineWidth',2,'Color','r')
-
-[f,x] = ecdf(coeff(isInject,2));
-f(f>0.5) = 1 - f(f>0.5);
-plot(x,f,'LineWidth',2,'Color','g')
-
-plot([0,0],[0,0.5], '--k')
-xlabel('PC2 loading (coeff)')
-ylabel('Folded probability')
-legend("Control","Drink", "Inject","Location","northwest")
-
-[h,p] = kstest2(coeff(isControl,2),coeff(isDrink,2) );
-text(-.09,.35,['CvD p=',num2str(p*2,2)])
-
-[h,p] = kstest2(coeff(isControl,2),coeff(isInject,2) );
-text(-.09,.32,['CvI p=',num2str(p*2,2)])
-
-%% PC3 loadings, split by group  (mountain plot)
-figure(5); clf
-[f,x] = ecdf(coeff(isControl,3));
-f(f>0.5) = 1 - f(f>0.5);
-plot(x,f,'LineWidth',2,'Color','b')
-hold on
-
-[f,x] = ecdf(coeff(isDrink,3));
-f(f>0.5) = 1 - f(f>0.5);
-plot(x,f,'LineWidth',2,'Color','r')
-
-[f,x] = ecdf(coeff(isInject,3));
-f(f>0.5) = 1 - f(f>0.5);
-plot(x,f,'LineWidth',2,'Color','g')
-
-plot([0,0],[0,0.5], '--k')
-xlabel('PC3 loading (coeff)')
-ylabel('Folded probability')
-legend("Control","Drink", "Inject","Location","northwest")
-
-[h,p] = kstest2(coeff(isControl,3),coeff(isDrink,3) );
-text(-.13,.35,['CvD p=',num2str(p*2,2)])
-
-[h,p] = kstest2(coeff(isControl,3),coeff(isInject,3) );
-text(-.13,.32,['CvI p=',num2str(p*2,2)])
-
-%% PC4 loadings, split by group  (mountain plot)
-figure(5); clf
-[f,x] = ecdf(coeff(isControl,4));
-f(f>0.5) = 1 - f(f>0.5);
-plot(x,f,'LineWidth',2,'Color','b')
-hold on
-
-[f,x] = ecdf(coeff(isDrink,4));
-f(f>0.5) = 1 - f(f>0.5);
-plot(x,f,'LineWidth',2,'Color','r')
-
-[f,x] = ecdf(coeff(isInject,4));
-f(f>0.5) = 1 - f(f>0.5);
-plot(x,f,'LineWidth',2,'Color','g')
-
-plot([0,0],[0,0.5], '--k')
-xlabel('PC4 loading (coeff)')
-ylabel('Folded probability')
-legend("Control","Drink", "Inject","Location","northwest")
-
-[h,p] = kstest2(coeff(isControl,4),coeff(isDrink,4) );
-text(-.13,.35,['CvD p=',num2str(p*2,2)])
-
-[h,p] = kstest2(coeff(isControl,4),coeff(isInject,4) );
-text(-.13,.32,['CvI p=',num2str(p*2,2)])
-
-%% Plot traces for each valve opening, only for heavy negative PC1 loaders
-spkZ_valves = zscore(spkCounts,0,2);
-
-controlValves = spkZ_valves(isControl & (coeff(:,1) < pc1_Thresh), :, :);
-controlValves = squeeze(mean(controlValves,1))';
-
-drinkValves = spkZ_valves(isDrink & (coeff(:,1) < pc1_Thresh), :, :);
-drinkValves = squeeze(mean(drinkValves,1))';
-
-injectValves = spkZ_valves(isInject & (coeff(:,1) < pc1_Thresh), :, :);
-injectValves = squeeze(mean(injectValves,1))';
-
-figure(6); clf
-t = tiledlayout(3,1,'TileSpacing','Compact','Padding','Compact');
-
-cLabel = 'zscore';
-cRange = [-1,1];
-
-nexttile
-plotSpikeHeatmapWithBpod(controlValves, binEdges, [], cLabel,cRange)
-x = [(0-binEdges(1))/binWidth, (10.1-binEdges(1))/binWidth];
-scatter(x, [0,0], 'r*')
-yL = ylim();
-ylim([0,yL(2)])
-set(gca,'xticklabel',{[]})
-title('Control')
-ylabel('Valve number')
-
-nexttile
-plotSpikeHeatmapWithBpod(drinkValves, binEdges, [], cLabel,cRange)
-x = [(0-binEdges(1))/binWidth, (10.1-binEdges(1))/binWidth];
-scatter(x, [0,0], 'r*')
-yL = ylim();
-ylim([0,yL(2)])
-set(gca,'xticklabel',{[]})
-title('Drink')
-ylabel('Valve number')
-
-nexttile
-plotSpikeHeatmapWithBpod(injectValves, binEdges, [], cLabel,cRange)
-x = [(0-binEdges(1))/binWidth, (10.1-binEdges(1))/binWidth];
-scatter(x, [0,0], 'r*')
-yL = ylim();
-ylim([0,yL(2)])
-set(gca,'xticklabel',{[]})
-title('Inject')
-ylabel('Valve number')
-xlabel('Time (0.1s bins)')
-
-
 
 %%
 function vals = val2Ind(x, vals)
