@@ -4,6 +4,10 @@ figFolder = 'C:\Users\dis006\OneDrive - Indiana University\localAlcohol\Figures\
 d_lowEk = load("diffusion_ek0p8.mat");
 d_highEk = load("diffusion_ek2.mat");
 load("goodClusters.mat")
+
+controlColor = [64, 4, 86]/255;
+drinkColor = [3, 104, 67]/255;
+injectColor = [217,95,2]/255;
 %% spikes around injection 
 binWidth=10;
 %binEdges = (-60*10):binWidth:(60*12);
@@ -26,23 +30,27 @@ isInject = contains(goodClusters.group,'inject');
 %% spikes around injection (average)
 f = figure(123); clf
 x_time = binEdges(1:end-1) + (binEdges(2)-binEdges(1))/2;
-addShadedLine(x_time,spkZ(isControl,:),'b','Control');
+addShadedLine(x_time,spkZ(isControl,:),{'Color', controlColor});
 hold on
-addShadedLine(x_time,spkZ(isInject,:),'r','Inject');
+addShadedLine(x_time,spkZ(isInject,:),{'Color', injectColor});
 plot(xlim(), [0,0], '--k')
 
 %plotBpod(bpod)
+plot([0,120], [.9,.9], 'Color',[.5,.5,.5], 'LineWidth',2)
+text(60,0.9,'Injection','HorizontalAlignment','center','VerticalAlignment','bottom')
+
 xlim([x_time(1), x_time(end)])
+ylim([-.8,1])
 
 xlabel('Time (s)')
-ylabel('zscore')
+ylabel('Z-score')
 
 leg = legend('Control','Inject','Location','best');
 legend('boxoff')
 leg.ItemTokenSize = [5,4];
 
 f.Units = "inches";
-f.Position = [2,2,3,2];
+f.Position = [2,2,4,2.5];
 exportgraphics(gcf,[figFolder,'grandMean.pdf'])
 
 %% Run PCA
@@ -71,6 +79,8 @@ plot(x_time, score(:,1),'LineWidth',1.5,'Color',[.8,0,.2,.3]);
 plot(x_time, score(:,2),'LineWidth',2,'Color',[0,0,1,1]);
 %plot(x_time, score(:,3),'LineWidth',1.5,'Color',[0,.8,.2,.3]);
 
+plot([0,120], [14,14], 'Color',[.5,.5,.5], 'LineWidth',2)
+
 xlabel('Time (s)'); ylabel('Z-score');
 
 hold on
@@ -90,11 +100,11 @@ exportgraphics(gcf,[figFolder,'pca_score.pdf'])
 figure(123);clf
 [f,x] = ecdf(coeff(isControl,2));
 f(f>0.5) = 1 - f(f>0.5);
-plot(x,f,'LineWidth',2,'Color','b')
+plot(x,f,'LineWidth',2,'Color',controlColor)
 hold on
 [f,x] = ecdf(coeff(isInject,2));
 f(f>0.5) = 1 - f(f>0.5);
-plot(x,f,'LineWidth',2,'Color','r')
+plot(x,f,'LineWidth',2,'Color',injectColor)
 
 plot([0,0],[0,0.5], '--k')
 xlabel('PC2 loading (coeff)')
@@ -104,10 +114,10 @@ legend('boxoff')
 leg.ItemTokenSize = [5,4];
 
 [h,p] = kstest2(coeff(isControl,2),coeff(isInject,2) );
-text(-.1,.4,['p=',num2str(p,2)], 'FontSize',5)
+% text(-.1,.4,['p=',num2str(p,2)], 'FontSize',5)
 f = gcf;
 f.Units = "inches";
-f.Position = [2,2,2,2];
+f.Position = [2,2,2.5,2];
 exportgraphics(gcf,[figFolder,'pca_loading.pdf'])
 
 
@@ -132,15 +142,15 @@ figure(123); clf
 hold on
 thisDist = 43;
 shadedErrorBar(diffusion.time, diffusion.conc_mean(thisDist,:), diffusion.conc_range(thisDist,:), ...
-    'LineProps', {'b-','LineWidth',1.5})
+    'LineProps', {'b-','LineWidth',1})
 
 thisDist = 53;
 shadedErrorBar(diffusion.time, diffusion.conc_mean(thisDist,:), diffusion.conc_range(thisDist,:), ...
-    'LineProps', {'g-','LineWidth',1.5})
+    'LineProps', {'g-','LineWidth',1})
 
 thisDist = 69;
 shadedErrorBar(diffusion.time, diffusion.conc_mean(thisDist,:), diffusion.conc_range(thisDist,:), ...
-    'LineProps', {'r-','LineWidth',1.5})
+    'LineProps', {'r-','LineWidth',1})
 
 plot([120,120],ylim,'r--')
 xlabel('Time (s)')
@@ -166,7 +176,7 @@ yyaxis left
 linInd = sub2ind(size(diffusion.conc_mean), (1:length(inds))', inds);
 peakConc_range =  diffusion.conc_range(linInd);
 shadedErrorBar(diffusion.dist,peakConc,peakConc_range, ...
-        'LineProps', {'-k','LineWidth',1.5})
+        'LineProps', {'-k','LineWidth',1})
 ax = gca;
 ax.YColor = 'k';
 ylabel('Peak ethanol (mg/dL)','Color', 'k')
@@ -292,8 +302,13 @@ box off
 % set(gca, "XTickLabel", [])
 xtickangle(45)
 
+leg = legend('- Corr','NS', '+ Corr','Location','eastoutside');
+legend('boxoff')
+leg.ItemTokenSize = [5,4];
+
+
 f.Units = "inches";
-f.Position = [2,2,1,2];
+f.Position = [2,2,1.5,2.1];
 exportgraphics(gcf,[figFolder,'concentration_stackedBar.pdf'])
 
 %% plot mean firing for high and low correlation clusters (Control)
@@ -301,15 +316,16 @@ exportgraphics(gcf,[figFolder,'concentration_stackedBar.pdf'])
 figure(123); clf;
 hold on
 y = spkZ(rho<0 & pval<.05 & isControl,:);
-addShadedLine(x_time, y, {'Color', nCorrColor, 'Linewidth', 1},'NegativeCorrelation')
+addShadedLine(x_time, y, {'Color', nCorrColor, 'Linewidth', 1})
 
 y = spkZ(rho>0 & pval<.05 & isControl,:);
-addShadedLine(x_time, y, {'Color', pCorrColor, 'Linewidth', 1},'PositiveCorrelation')
+addShadedLine(x_time, y, {'Color', pCorrColor, 'Linewidth', 1})
 
 xlim([x_time(1), x_time(end)])
 plot([x_time(1), x_time(end)], [0,0], '--k')
 ylim([-1,2.5])
 
+plot([0,120], [2.3,2.3], 'Color',[.5,.5,.5], 'LineWidth',2)
 % xlabel('Time (s)')
 set(gca, "XTick", [])
 ylabel(["Control","Z-score"])
@@ -318,6 +334,7 @@ ylabel(["Control","Z-score"])
 % legend('boxoff')
 % leg.ItemTokenSize = [5,4];
 
+f = gcf;
 f.Units = "inches";
 f.Position = [2,2,2,1];
 exportgraphics(gcf,[figFolder,'Control_corr.pdf'])
@@ -325,10 +342,10 @@ exportgraphics(gcf,[figFolder,'Control_corr.pdf'])
 figure(123); clf;
 hold on
 y = spkZ(rho<0 & pval<.05 & isInject,:);
-addShadedLine(x_time, y,{'Color', nCorrColor, 'Linewidth', 1},'NegativeCorrelation')
+addShadedLine(x_time, y,{'Color', nCorrColor, 'Linewidth', 1})
 
 y = spkZ(rho>0 & pval<.05 & isInject,:);
-addShadedLine(x_time, y,{'Color', pCorrColor, 'Linewidth', 1},'PositiveCorrelation')
+addShadedLine(x_time, y,{'Color', pCorrColor, 'Linewidth', 1})
 
 xlim([x_time(1), x_time(end)])
 plot([x_time(1), x_time(end)], [0,0], '--k')
@@ -378,9 +395,9 @@ end
 %% Plot mean cross correlation (all)
 figure(8); clf
 x = lag*binWidth;
-addShadedLine(x, r, 'k','All')
+addShadedLine(x, r, 'k')
 hold on
-addShadedLine(x, r_shuff, 'k--', 'Shuffled')
+addShadedLine(x, r_shuff, 'k--')
 % ylim([0,1])
 plot([0,0],ylim,'k--')
 plot(xlim,[0,0], 'k--')
@@ -390,12 +407,12 @@ ylabel('Correlation: spiking vs concentration')
 %% Plot mean cross correlation (split by type)
 figure(8); clf
 x = lag*binWidth;
-addShadedLine(x, r(isControl,:), 'b','Control')
+addShadedLine(x, r(isControl,:), 'b')
 hold on
-addShadedLine(x, r(isInject,:), 'r','Inject')
+addShadedLine(x, r(isInject,:), 'r')
 
-addShadedLine(x, r_shuff(isControl,:), 'b--','Control')
-addShadedLine(x, r_shuff(isInject,:), 'r--','Inject')
+addShadedLine(x, r_shuff(isControl,:), 'b--')
+addShadedLine(x, r_shuff(isInject,:), 'r--')
 
 %ylim([0,1])
 plot([0,0],ylim,'k--')
