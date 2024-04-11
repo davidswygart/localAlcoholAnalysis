@@ -12,7 +12,7 @@ injectColor = [217,95,2]/255;
 binWidth=10;
 %binEdges = (-60*10):binWidth:(60*12);
 target = 'microInjectionStart';
-binEdges = -200:binWidth:60*12;
+binEdges = -200:binWidth:720;
 % binEdges = 0:binWidth:60*12;
 cLabel = 'zscore';
 cRange = [-.4,6];
@@ -33,7 +33,7 @@ x_time = binEdges(1:end-1) + (binEdges(2)-binEdges(1))/2;
 addShadedLine(x_time,spkZ(isControl,:),{'Color', controlColor});
 hold on
 addShadedLine(x_time,spkZ(isInject,:),{'Color', injectColor});
-plot(xlim(), [0,0], '--k')
+yline(0)
 
 %plotBpod(bpod)
 plot([0,120], [.9,.9], 'Color',[.5,.5,.5], 'LineWidth',2)
@@ -49,9 +49,10 @@ leg = legend('Control','Inject','Location','best');
 legend('boxoff')
 leg.ItemTokenSize = [5,4];
 
+f = gcf;
 f.Units = "inches";
-f.Position = [2,2,4,2.5];
-exportgraphics(gcf,[figFolder,'grandMean.pdf'])
+f.Position = [2,2,4.1,2];
+exportgraphics(gcf,[figFolder,'grandMean.pdf'], "ContentType","vector","BackgroundColor","none")
 
 %% Run PCA
 [coeff,score,latent,~,explained] = pca(spkZ'); % <-- Data are (time(bins) x neurons)
@@ -62,13 +63,14 @@ f = figure(123);clf
 ylabel('Eigenvalue')
 bar(explained,'k');  
 % bar(cumsum(explained),'k');
-ylabel('Explained variance (%)')
+ylabel(["Explained", "variance (%)"])
 xlabel('PC')
-xlim([.50,6.5])
+xlim([.50,4.5])
 
+f = gcf;
 f.Units = "inches";
-f.Position = [2,2,2,2];
-exportgraphics(gcf,[figFolder,'Scree.pdf'])
+f.Position = [2,2,1.2,1];
+exportgraphics(gcf,[figFolder,'Scree.pdf'],"ContentType","vector",BackgroundColor="none")
 
 %% Plot PC pattern (score)
 f = figure(123);clf
@@ -84,7 +86,7 @@ plot([0,120], [14,14], 'Color',[.5,.5,.5], 'LineWidth',2)
 xlabel('Time (s)'); ylabel('Z-score');
 
 hold on
-plot(xlim,[0,0], '--k')
+yline(0)
 %plotBpod(bpod)
 
 leg = legend({'PC1';'PC2'},'Location','best');
@@ -106,18 +108,20 @@ hold on
 f(f>0.5) = 1 - f(f>0.5);
 plot(x,f,'LineWidth',2,'Color',injectColor)
 
-plot([0,0],[0,0.5], '--k')
-xlabel('PC2 loading (coeff)')
-ylabel('Folded probability')
-leg = legend("Control", "Inject","Location","northeast");
-legend('boxoff')
-leg.ItemTokenSize = [5,4];
+xline(0)
+xlabel('PC2 loadings')
+ylabel('Probability')
+% leg = legend("Control", "Inject","Location","northwest");
+% legend('boxoff')
+% leg.ItemTokenSize = [5,4];
+
+ylim([0,.5])
 
 [h,p] = kstest2(coeff(isControl,2),coeff(isInject,2) );
 % text(-.1,.4,['p=',num2str(p,2)], 'FontSize',5)
 f = gcf;
 f.Units = "inches";
-f.Position = [2,2,2.5,2];
+f.Position = [2,2,1.2,1];
 exportgraphics(gcf,[figFolder,'pca_loading.pdf'])
 
 
@@ -130,9 +134,10 @@ diffusion.dist = d_highEk.diffusion.dist;
 diffusion.conc_mean = (d_highEk.diffusion.conc + d_lowEk.diffusion.conc)/2;
 diffusion.conc_range = abs(d_highEk.diffusion.conc - d_lowEk.diffusion.conc)/2;
 
-% 
-% diffusion.time = [-200, diffusion.time];
-% diffusion.conc_mean = cat(zeros(size(diffusion.conc_mean, 1),1), diffusion.conc_mean,1);
+
+diffusion.time = [-200, diffusion.time];
+diffusion.conc_mean = cat(2, zeros(size(diffusion.conc_mean, 1),1), diffusion.conc_mean);
+diffusion.conc_range = cat(2, zeros(size(diffusion.conc_mean, 1),1), diffusion.conc_range);
 
 %% Calculate the lowest 10%, median, and top 10% of cluster distances
 sortedDist = sort(goodClusters.distFromInj(contains(goodClusters.group,'inject')));
@@ -143,6 +148,8 @@ sortedDist(round(length(sortedDist)*0.9))
 %% plot concentration at different distances
 figure(123); clf
 hold on
+
+
 thisDist = 43;
 shadedErrorBar(diffusion.time, diffusion.conc_mean(thisDist,:), diffusion.conc_range(thisDist,:), ...
     'LineProps', {'b-','LineWidth',1})
@@ -155,10 +162,11 @@ thisDist = 69;
 shadedErrorBar(diffusion.time, diffusion.conc_mean(thisDist,:), diffusion.conc_range(thisDist,:), ...
     'LineProps', {'r-','LineWidth',1})
 
-plot([120,120],ylim,'r--')
+plot([0,120], [240,240], 'Color',[.5,.5,.5], 'LineWidth',2)
+% plot([120,120],ylim,'r--')
 xlabel('Time (s)')
-ylabel('Concentration (mg/dL)')
-xlim([0,600])
+ylabel('Predicted [EtOH] (mg/dL)')
+xlim([-200,720])
 
 leg = legend('430 um', '530 um', '690 um');
 legend('boxoff')
@@ -166,7 +174,7 @@ leg.ItemTokenSize = [5,4];
 f = gcf;
 f.Units = "inches";
 f.Position = [2,2,2,2];
-exportgraphics(gcf,[figFolder,'concentration_atDistances.pdf'])
+exportgraphics(gcf,[figFolder,'concentration_atDistances.pdf'],"ContentType","vector","BackgroundColor","none")
 
 %% plot histogram of cluster distances vs. peak concentration
 
@@ -182,7 +190,7 @@ shadedErrorBar(diffusion.dist,peakConc,peakConc_range, ...
         'LineProps', {'-k','LineWidth',1})
 ax = gca;
 ax.YColor = 'k';
-ylabel('Peak ethanol (mg/dL)','Color', 'k')
+ylabel('Predicted peak [EtOH] (mg/dL)','Color', 'k')
 % set(gca, 'YScale', 'log')
 ylim([0,400])
 
@@ -191,7 +199,7 @@ yyaxis right
 b = 200:50:2000;
 histogram(goodClusters.distFromInj(contains(goodClusters.group,'inject')),b)
 % histogram(goodClusters.distFromInj,b)
-ylabel('Cluster count', 'Rotation',-90)
+ylabel('Number of neurons', 'Rotation',-90)
 % set(get(gca,'YLabel'),'Rotation',-90)
 % ylp = get(ylh, 'Position');
 % ext=get(y_h,'Extent');
@@ -206,7 +214,7 @@ xlabel('Distance from injection (um)')
 f = gcf;
 f.Units = "inches";
 f.Position = [2,2,2,2];
-exportgraphics(gcf,[figFolder,'concentration_ClusterDistAndPeak.pdf'])
+exportgraphics(gcf,[figFolder,'concentration_ClusterDistAndPeak.pdf'], "BackgroundColor","none","ContentType","vector")
 
 %% Calculate predicted alcohol time per cluster
 diffusion.conc = diffusion.conc_mean;
@@ -239,22 +247,6 @@ xlim([0,165])
  identity = logical(eye(length(rho)));
  pval = pval(identity);
  rho = rho(identity);
-%% Mountain plot correlation lag 0
-figure(5); clf
-[f,x] = ecdf(rho(isControl));
-f(f>0.5) = 1 - f(f>0.5);
-plot(x,f,'LineWidth',2,'Color','b')
-hold on
-
-[f,x] = ecdf(rho(isInject));
-f(f>0.5) = 1 - f(f>0.5);
-plot(x,f,'LineWidth',2,'Color','r')
-
-xlabel('Correlation (firing to ethanol concentration)')
-ylabel('Folded probability')
-
-plot([0,0],[0,.5], 'k--')
-legend("Control","Inject")
 
 %% Corelation to firing (stacked bar) for paper
 figure(123); clf
@@ -281,6 +273,7 @@ b(3).FaceColor = pCorrColor;
 %ylim([0,sum(control_stack)])
 
 
+
 % c = colororder;
 % textY = 2.7;
 % textX = stack(1,2)/2;
@@ -292,7 +285,7 @@ b(3).FaceColor = pCorrColor;
 
 %ylim([.25,3])
 
-ylabel('Proportion of clusters')
+ylabel('Proportion of neurons')
 
 f = gcf;
 %hA = axes(f);
@@ -304,15 +297,15 @@ box off
 % set(get(gca, 'YAxis'), 'Visible', 'off');
 % set(gca, "XTickLabel", [])
 xtickangle(45)
-
-leg = legend('- Corr','NS', '+ Corr','Location','eastoutside');
-legend('boxoff')
-leg.ItemTokenSize = [5,4];
+% 
+% leg = legend('-','NS', '+','Location','eastoutside');
+% legend('boxoff')
+% leg.ItemTokenSize = [5,4];
 
 
 f.Units = "inches";
 f.Position = [2,2,1.5,2.1];
-exportgraphics(gcf,[figFolder,'concentration_stackedBar.pdf'])
+exportgraphics(gcf,[figFolder,'concentration_stackedBar.pdf'],"ContentType","vector","BackgroundColor","none")
 
 %% plot mean firing for high and low correlation clusters (Control)
 
@@ -325,7 +318,7 @@ y = spkZ(rho>0 & pval<.05 & isControl,:);
 addShadedLine(x_time, y, {'Color', pCorrColor, 'Linewidth', 1})
 
 xlim([x_time(1), x_time(end)])
-plot([x_time(1), x_time(end)], [0,0], '--k')
+yline(0)
 ylim([-1,2.5])
 
 plot([0,120], [2.3,2.3], 'Color',[.5,.5,.5], 'LineWidth',2)
@@ -339,7 +332,7 @@ ylabel(["Control","Z-score"])
 
 f = gcf;
 f.Units = "inches";
-f.Position = [2,2,2,1];
+f.Position = [2,2,2.2,1];
 exportgraphics(gcf,[figFolder,'Control_corr.pdf'])
 %% plot mean firing for high and low correlation clusters (Inject)
 figure(123); clf;
@@ -351,7 +344,7 @@ y = spkZ(rho>0 & pval<.05 & isInject,:);
 addShadedLine(x_time, y,{'Color', pCorrColor, 'Linewidth', 1})
 
 xlim([x_time(1), x_time(end)])
-plot([x_time(1), x_time(end)], [0,0], '--k')
+yline(0)
 ylim([-1,2.5])
 xlabel('Time (s)')
 ylabel(["Inject","Z-score"])
@@ -361,7 +354,7 @@ ylabel(["Inject","Z-score"])
 % leg.ItemTokenSize = [5,4];
 
 f.Units = "inches";
-f.Position = [2,2,2,1.2];
+f.Position = [2,2,2.2,1.2];
 exportgraphics(gcf,[figFolder,'Inject_corr.pdf'])
 %% Scatter plot correlation vs distance
 figure(7); clf
@@ -399,28 +392,32 @@ end
 figure(123); clf
 hold on
 x = lag*binWidth;
-addShadedLine(x, r(isControl,:), {'Color', controlColor});
-addShadedLine(x, r(isInject,:), {'Color', injectColor});
 
 addShadedLine(x, r_shuff(isControl,:), {'--', 'Color', (1-controlColor)*.3 + controlColor});
 addShadedLine(x, r_shuff(isInject,:), {'--', 'Color', (1-injectColor)*.3 + injectColor});
 
+addShadedLine(x, r(isControl,:), {'Color', controlColor});
+addShadedLine(x, r(isInject,:), {'Color', injectColor});
+
+yline(0)
+xline(0)
+
 %ylim([0,1])
-l=plot([0,0],ylim,'k-');
+% plot([0,0],ylim,'k-');
 %uistack(l, 'bottom');
-l = plot(xlim,[0,0], 'k-');
+% plot(xlim,[0,0], 'k-');
 %uistack(l, 'bottom');
 xlabel('Lag (s)')
-ylabel('Correlation')
-leg = legend("Control", "Inject", 'Location', 'southwest');
+ylabel('Spiking correlation to [EtOH]')
+leg = legend("Control", "Inject", 'Location', 'northwest');
 legend('boxoff')
 leg.ItemTokenSize = [5,4];
 xlim([-800,800])
 
 f = gcf;
 f.Units = "inches";
-f.Position = [2,2,2,1.2];
-exportgraphics(gcf,[figFolder,'crossCorrelation.pdf'])
+f.Position = [2,2,3.4,2.4];
+exportgraphics(gcf,[figFolder,'crossCorrelation.pdf'], "ContentType","vector","BackgroundColor","none")
 %% Mountain plot of p-Value for specific lag
 lagPoint = -60;
 %lagPoint = -360;
