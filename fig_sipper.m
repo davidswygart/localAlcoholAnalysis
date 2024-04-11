@@ -1,6 +1,7 @@
 figFolder = 'C:\Users\david\OneDrive - Indiana University\localAlcohol\Figures\2_Sipper\matlabExports\';
 figFolder = 'C:\Users\dis006\OneDrive - Indiana University\localAlcohol\Figures\2_Sipper\matlabExports\';
 load("goodClusters.mat")
+load("group.mat")
 
 controlColor = [64, 4, 86]/255;
 drinkColor = [3, 104, 67]/255;
@@ -9,11 +10,71 @@ injectColor = [217,95,2]/255;
 isControl = contains(goodClusters.group,'control');
 isDrink = contains(goodClusters.group,'drink');
 isInject = contains(goodClusters.group,'inject');
+
+%% Fluid consumed
+
+group.mlPerkg = 1000 * group.fluidConsumed ./ group.mouseWeight;
+
+controlConsumed = group.mlPerkg(contains(group.group,'control'));
+injectedConsumed = group.mlPerkg(contains(group.group, 'injected'));
+drinkConsumed = group.mlPerkg(contains(group.group, 'drink'));
+
+
+figure(123);clf; hold on
+groupNames = ["Control", "Drink", "Inject"];
+x = categorical(groupNames);
+x = reordercats(x,groupNames);
+y = [mean(controlConsumed), mean(drinkConsumed), mean(injectedConsumed)];
+err = [std(controlConsumed)/sqrt(length(controlConsumed)), std(drinkConsumed)/sqrt(length(drinkConsumed)), std(injectedConsumed)/sqrt(length(injectedConsumed))];
+
+b = bar(x,y);
+b.FaceColor = 'flat';
+b.CData(1,:) = controlColor;
+b.CData(2,:) = drinkColor;
+b.CData(3,:) = injectColor;
+errorbar(x,y,err,'k', 'LineStyle','none')
+% 
+scatter(ones(length(controlConsumed),1)*.75 + .5*rand(length(controlConsumed),1) , controlConsumed, 'k.')
+scatter(ones(length(drinkConsumed),1)*1.75 + .5*rand(length(drinkConsumed),1) , drinkConsumed, 'k.')
+scatter(ones(length(injectedConsumed),1)*2.75 + .5*rand(length(injectedConsumed),1) , injectedConsumed, 'k.')
+
+ylabel('Fluid consumed (ml/kg)')
+
+f.Units = "inches";
+f.Position = [2,2,2,2];
+exportgraphics(gcf,[figFolder,'volumeConsumed.pdf'],"BackgroundColor","none","ContentType","vector")
+
+%% brain ethanol 
+drinkEthanol = group.brainAlcohol(group.brainAlcohol>0); %hacky because they are the only ones with detectable ethanol
+
+figure(123);clf; hold on
+groupNames = ["Control", "Drink", "Inject"];
+x = categorical(groupNames);
+x = reordercats(x,groupNames);
+y = [0, mean(drinkEthanol), 0];
+err = [0, std(drinkEthanol)/sqrt(length(drinkEthanol)), 0];
+
+b = bar(x,y);
+b.FaceColor = 'flat';
+b.CData(1,:) = controlColor;
+b.CData(2,:) = drinkColor;
+b.CData(3,:) = injectColor;
+errorbar(x,y,err,'k', 'LineStyle','none')
+% 
+
+scatter(ones(length(drinkEthanol),1)*1.75 + .5*rand(length(drinkEthanol),1) , drinkEthanol, 'k.')
+
+
+ylabel('Brain [EtOH] (mg/dL)')
+
+f.Units = "inches";
+f.Position = [2,2,2,2];
+exportgraphics(gcf,[figFolder,'brainEthanol.pdf'],"BackgroundColor","none","ContentType","vector")
 %% spikes around drinking 
 binWidth=10;
 %binEdges = (-60*10):binWidth:(60*12);
 target = 'sipperStart';
-binEdges = -4*60:binWidth:60*20;
+binEdges = -200:binWidth:1200;
 % binEdges = 0:binWidth:60*12;
 cLabel = 'zscore';
 cRange = [-.4,6];
@@ -32,23 +93,24 @@ x_time = binEdges(1:end-1) + (binEdges(2)-binEdges(1))/2;
 addShadedLine(x_time,spkZ(isControl,:),{'Color', controlColor});
 addShadedLine(x_time,spkZ(isDrink,:),{'Color', drinkColor});
 addShadedLine(x_time,spkZ(isInject,:),{'Color', injectColor});
-plot(xlim(), [0,0], '--k')
+yline(0)
 
-scatter(bpod.dropDeployed,ones(length(bpod.dropDeployed)), '.', 'MarkerEdgeColor',[.5,.5,.5])
+plot([0,900], [1,1], 'Color',[.5,.5,.5], 'LineWidth',2)
+text(450,1,"Sipper active","HorizontalAlignment","center","VerticalAlignment","bottom")
 
 xlim([x_time(1), x_time(end)])
-ylim([-.8,1])
+ylim([-.8,1.1])
 
 xlabel('Time (s)')
 ylabel('Z-score')
 
-leg = legend('Control','Drink','Inject','Location','eastoutside');
+leg = legend('Control','Drink','Inject','Location','northeast');
 legend('boxoff')
 leg.ItemTokenSize = [5,4];
 
 f.Units = "inches";
-f.Position = [2,2,4,1.75];
-exportgraphics(gcf,[figFolder,'grandMean.pdf'])
+f.Position = [2,2,4.1,2];
+exportgraphics(gcf,[figFolder,'grandMean.pdf'], "ContentType","vector","BackgroundColor","none")
 
 %% Spikes around sipper valve
 binWidth=0.1;
@@ -96,27 +158,33 @@ xlabel('Time (0.1s bins)')
 
 %% Spikes around sipper valve - mean
 figure(123); clf
-title('Average spiking after valve open')
+% title('Average spiking after valve open')
 hold on
 x_time = binEdges(1:end-1) + (binEdges(2)-binEdges(1))/2;
 addShadedLine(x_time, control, {'Color', controlColor})
 addShadedLine(x_time, drink, {'Color', drinkColor})
 addShadedLine(x_time, inject, {'Color', injectColor})
-plot(xlim(), [0,0], '--k')
+yline(0)
 
+ylim([-1.1,2])
+plot([0,0],ylim,'--','Color',[.5,.5,.5])
+plot([10.1,10.1],ylim,'--','Color',[.5,.5,.5])
+text(0.1,1.7,["Fluid" "deployed"])
+text(10.2,1.7,["Fluid" "removed"])
 
 ylabel('Z-score')
 xlabel('Time (s)')
+xlim([x_time(1), x_time(end)])
 
 
-leg = legend('Control', 'Drink', 'Inject');
+leg = legend('Control', 'Drink', 'Inject',Location='north');
 legend('boxoff')
 leg.ItemTokenSize = [5,4];
 
 f = gcf;
 f.Units = "inches";
-f.Position = [2,2,3,1.75];
-exportgraphics(gcf,[figFolder,'valveMean.pdf'])
+f.Position = [2,2,3.3,1.75];
+exportgraphics(gcf,[figFolder,'valveMean.pdf'],"ContentType","vector","BackgroundColor","none")
 
 %% Group by N valves 
 valveBinning = 12;
@@ -207,8 +275,12 @@ y = spkZ_clumped(isDrink,:,1);
 addShadedLine(x_time, y, {'Color', drinkColor})
 y = spkZ_clumped(isInject,:,1);
 addShadedLine(x_time, y, {'Color', injectColor})
-plot(xlim(), [0,0], '--k')
+
+yline(0)
 ylabel('Z-score')
+
+plot([0,0],ylim,'--','Color',[.5,.5,.5])
+plot([10.1,10.1],ylim,'--','Color',[.5,.5,.5])
 
 title('First 12 valve openings')
 
@@ -245,8 +317,8 @@ xlabel('Time (s)')
 
 f = gcf;
 f.Units = "inches";
-f.Position = [2,2,3,2];
-exportgraphics(gcf,[figFolder,'clumpedMean.pdf'])
+f.Position = [2,2,3.3,2];
+exportgraphics(gcf,[figFolder,'clumpedMean.pdf'],"ContentType","vector","BackgroundColor","none")
 
 %% Run PCA
 [coeff,score,latent,~,explained] = pca(spkZ'); % <-- Data are (time(bins) x neurons)
@@ -259,12 +331,12 @@ bar(explained,'k');
 % bar(cumsum(explained),'k');
 ylabel('Explained variance (%)')
 xlabel('PC')
-xlim([.50,6.5])
+xlim([.50,5.5])
 
 f = gcf;
 f.Units = "inches";
-f.Position = [2,2,2,2];
-exportgraphics(gcf,[figFolder,'pca_scree.pdf'])
+f.Position = [2,2,1.1,1.7];
+exportgraphics(gcf,[figFolder,'pca_scree.pdf'],"ContentType","vector","BackgroundColor","none")
 
 %% Plot PC pattern (score)
 figure(123); clf
@@ -281,7 +353,11 @@ ylabel('Z-score');
 xlim([binEdges(1), binEdges(end)])
 
 hold on
-plot(xlim,[0,0],'--k')
+yline(0)
+
+ylim([-15,30])
+plot([0,0],ylim,'--','Color',[.5,.5,.5])
+plot([10.1,10.1],ylim,'--','Color',[.5,.5,.5])
 
 leg = legend({'PC1';'PC2';'PC3'},'Location','best');
 legend('boxoff')
@@ -291,50 +367,10 @@ xlim([binEdges(1), binEdges(end)])
 
 f = gcf;
 f.Units = "inches";
-f.Position = [2,2,3,2];
-exportgraphics(gcf,[figFolder,'pca_score.pdf'])
-
-%% Compare PC1 vs PC2, split by type
-
-figure(4);clf
-scatter(coeff(isControl,1),coeff(isControl,2), 'b','filled','MarkerFaceAlpha',.5)
-hold on
-scatter(coeff(isDrink,1),coeff(isDrink,2), 'r','filled','MarkerFaceAlpha',.5)
-scatter(coeff(isInject,1),coeff(isInject,2), 'g','filled','MarkerFaceAlpha',.5)
+f.Position = [2,2,3.3,1.75];
+exportgraphics(gcf,[figFolder,'pca_score.pdf'], "ContentType","vector", "BackgroundColor","none")
 
 
-plot([-1,1], [0,0], 'k--')
-plot([0,0],[1,-1], 'k--')
-
-
-xlim([-.17,.17])
-ylim([-.17,.17])
-axis equal 
-
-xlabel("PC1")
-ylabel("PC2"),
-
-legend('Control', 'Drink', 'Inject','Location','eastoutside')
-
-%% Compare PC1 vs PC4, split by type
-
-figure(4);clf
-scatter(coeff(isControl,1),coeff(isControl,4), 'b','filled','MarkerFaceAlpha',.5)
-hold on
-scatter(coeff(isDrink,1),coeff(isDrink,4), 'r','filled','MarkerFaceAlpha',.5)
-scatter(coeff(isInject,1),coeff(isInject,4), 'g','filled','MarkerFaceAlpha',.5)
-
-plot([-1,1], [0,0], 'k--')
-plot([0,0],[1,-1], 'k--')
-
-xlim([-.17,.17])
-ylim([-.17,.17])
-axis equal 
-
-xlabel("PC1")
-ylabel("PC4"),
-
-legend('Control', 'Drink', 'Inject','Location','eastoutside')
 
 %% PC1 loadings, split by group  (mountain plot)
 figure(123); clf
@@ -351,7 +387,7 @@ plot(x,f,'LineWidth',1.5,'Color',drinkColor)
 f(f>0.5) = 1 - f(f>0.5);
 plot(x,f,'LineWidth',1.5,'Color', injectColor)
 
-plot([0,0],[0,0.5], '--k')
+xline(0)
 xlabel('PC1 loading (coeff)')
 ylabel('Folded probability')
 legend("Control","Drink", "Inject","Location","northwest")
@@ -370,7 +406,7 @@ leg.ItemTokenSize = [5,4];
 
 f = gcf;
 f.Units = "inches";
-f.Position = [2,2,2,2];
+f.Position = [2,2,2,1.7];
 exportgraphics(gcf,[figFolder,'pca_PC1Mountain.pdf'])
 
 %%
