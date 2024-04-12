@@ -1,5 +1,5 @@
 figFolder = 'C:\Users\david\OneDrive - Indiana University\localAlcohol\Figures\2_Sipper\matlabExports\';
-figFolder = 'C:\Users\dis006\OneDrive - Indiana University\localAlcohol\Figures\2_Sipper\matlabExports\';
+% figFolder = 'C:\Users\dis006\OneDrive - Indiana University\localAlcohol\Figures\2_Sipper\matlabExports\';
 load("goodClusters.mat")
 load("group.mat")
 
@@ -79,7 +79,7 @@ binEdges = -200:binWidth:1200;
 cLabel = 'zscore';
 cRange = [-.4,6];
 
-[spkCounts,  bpod]  = binAroundTarget(goodClusters, target, binEdges, 'smooth');
+[spkCounts,  bpod]  = binAroundTarget(goodClusters, target, binEdges);%, 'smooth');
 spkZ = zscore(spkCounts,0, 2);
 
 figure(1); clf
@@ -115,7 +115,7 @@ exportgraphics(gcf,[figFolder,'grandMean.pdf'], "ContentType","vector","Backgrou
 %% Spikes around sipper valve
 binWidth=0.1;
 binEdges = -1:binWidth:14;
-spkCounts  = binAroundValve(goodClusters, binEdges,'smooth');
+spkCounts  = binAroundValve(goodClusters, binEdges);%,'smooth');
 spkAvg = mean(spkCounts ,3);
 spkZ = zscore(spkAvg,0, 2);
 
@@ -263,11 +263,11 @@ xlabel('Time (valve group #)')
 ylabel('zscore')
 hold off
 
-%% Spikes around sipper valve - mean
-figure(123); clf
-% t = tiledlayout(3,1,'TileSpacing','Compact','Padding','Compact');
-% 
-% nexttile
+%% Spikes - grouped by valve #
+figure(8); clf
+t = tiledlayout(3,1,'TileSpacing','Compact','Padding','Compact');
+
+nexttile
 hold on
 y = spkZ_clumped(isControl,:,1);
 addShadedLine(x_time, y, {'Color',controlColor})
@@ -278,33 +278,41 @@ addShadedLine(x_time, y, {'Color', injectColor})
 
 yline(0)
 ylabel('Z-score')
-
 plot([0,0],ylim,'--','Color',[.5,.5,.5])
 plot([10.1,10.1],ylim,'--','Color',[.5,.5,.5])
-
-title('First 12 valve openings')
-
-% nexttile
-% hold on
-% y = spkZ_clumped(isControl,:,3);
-% addShadedLine(x_time, y, 'b','Control')
-% y = spkZ_clumped(isDrink,:,3);
-% addShadedLine(x_time, y, 'r', 'Drink')
-% y = spkZ_clumped(isInject,:,3);
-% addShadedLine(x_time, y, 'g', 'Inject')
-% plot(xlim(), [0,0], '--k')
-% ylabel('zscore')
+xlim([x_time(1), x_time(end)])
 % 
-% nexttile
-% hold on
-% y = spkZ_clumped(isControl,:,5);
-% addShadedLine(x_time, y, 'b','Control')
-% y = spkZ_clumped(isDrink,:,5);
-% addShadedLine(x_time, y, 'r', 'Drink')
-% y = spkZ_clumped(isInject,:,5);
-% addShadedLine(x_time, y, 'g', 'Inject')
-% plot(xlim(), [0,0], '--k')
-% ylabel('zscore')
+% title('First 12 valve openings')
+
+nexttile
+hold on
+y = spkZ_clumped(isControl,:,3);
+addShadedLine(x_time, y, {'Color',controlColor})
+y = spkZ_clumped(isDrink,:,3);
+addShadedLine(x_time, y, {'Color',drinkColor})
+y = spkZ_clumped(isInject,:,3);
+addShadedLine(x_time, y, {'Color',injectColor})
+
+yline(0)
+plot([0,0],ylim,'--','Color',[.5,.5,.5])
+plot([10.1,10.1],ylim,'--','Color',[.5,.5,.5])
+xlim([x_time(1), x_time(end)])
+ylabel('zscore')
+
+nexttile
+hold on
+y = spkZ_clumped(isControl,:,5);
+addShadedLine(x_time, y,  {'Color',controlColor})
+y = spkZ_clumped(isDrink,:,5);
+addShadedLine(x_time, y, {'Color',drinkColor})
+y = spkZ_clumped(isInject,:,5);
+addShadedLine(x_time, y, {'Color',injectColor})
+
+yline(0)
+plot([0,0],ylim,'--','Color',[.5,.5,.5])
+plot([10.1,10.1],ylim,'--','Color',[.5,.5,.5])
+xlim([x_time(1), x_time(end)])
+ylabel('zscore')
 
 
 %legend('Control', 'Drink', 'Inject')
@@ -315,10 +323,10 @@ xlabel('Time (s)')
 % legend('boxoff')
 % leg.ItemTokenSize = [5,4];
 
-f = gcf;
-f.Units = "inches";
-f.Position = [2,2,3.3,2];
-exportgraphics(gcf,[figFolder,'clumpedMean.pdf'],"ContentType","vector","BackgroundColor","none")
+% f = gcf;
+% f.Units = "inches";
+% f.Position = [2,2,3.3,2];
+% exportgraphics(gcf,[figFolder,'clumpedMean.pdf'],"ContentType","vector","BackgroundColor","none")
 
 %% Run PCA
 [coeff,score,latent,~,explained] = pca(spkZ'); % <-- Data are (time(bins) x neurons)
