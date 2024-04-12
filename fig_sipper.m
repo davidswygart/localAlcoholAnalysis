@@ -3,8 +3,8 @@ figFolder = 'C:\Users\david\OneDrive - Indiana University\localAlcohol\Figures\2
 load("goodClusters.mat")
 load("group.mat")
 
-controlColor = [64, 4, 86]/255;
-drinkColor = [3, 104, 67]/255;
+controlColor = [65, 2, 87]/255;
+drinkColor = [5, 105, 67]/255;
 injectColor = [217,95,2]/255;
 
 isControl = contains(goodClusters.group,'control');
@@ -45,35 +45,30 @@ f.Position = [2,2,2,2];
 exportgraphics(gcf,[figFolder,'volumeConsumed.pdf'],"BackgroundColor","none","ContentType","vector")
 
 
-%% spikes around drinking 
+%% spikes around drinking  Full time;
 binWidth=10;
-%binEdges = (-60*10):binWidth:(60*12);
 target = 'sipperStart';
 binEdges = -200:binWidth:1200;
-% binEdges = 0:binWidth:60*12;
+x_fullTime = binEdges(1:end-1) + (binEdges(2)-binEdges(1))/2;
 cLabel = 'zscore';
 cRange = [-.4,6];
 
 [spkCounts,  bpod]  = binAroundTarget(goodClusters, target, binEdges);%, 'smooth');
-spkZ = zscore(spkCounts,0, 2);
+spkZ_fullTime = zscore(spkCounts,0, 2);
 
-figure(1); clf
-plotSpikeHeatmapWithBpod(spkZ, binEdges, bpod, cLabel,cRange)
-xlabel('Time (10s bins)')
-
-%% spikes around drinking (average)
+%% spikes around drinking Full time (average)
 f = figure(123); clf
 hold on
-x_time = binEdges(1:end-1) + (binEdges(2)-binEdges(1))/2;
-addShadedLine(x_time,spkZ(isControl,:),{'Color', controlColor});
-addShadedLine(x_time,spkZ(isDrink,:),{'Color', drinkColor});
-addShadedLine(x_time,spkZ(isInject,:),{'Color', injectColor});
+
+addShadedLine(x_fullTime,spkZ_fullTime(isControl,:),{'Color', controlColor});
+addShadedLine(x_fullTime,spkZ_fullTime(isDrink,:),{'Color', drinkColor});
+addShadedLine(x_fullTime,spkZ_fullTime(isInject,:),{'Color', injectColor});
 yline(0)
 
 plot([0,900], [1,1], 'Color',[.5,.5,.5], 'LineWidth',2)
 text(450,1,"Sipper active","HorizontalAlignment","center","VerticalAlignment","bottom")
 
-xlim([x_time(1), x_time(end)])
+xlim([x_fullTime(1), x_fullTime(end)])
 ylim([-.8,1.1])
 
 xlabel('Time (s)')
@@ -91,6 +86,7 @@ exportgraphics(gcf,[figFolder,'grandMean.pdf'], "ContentType","vector","Backgrou
 %% Spikes around sipper valve
 binWidth=0.1;
 binEdges = -1:binWidth:14;
+x_time = binEdges(1:end-1) + (binEdges(2)-binEdges(1))/2;
 spkCounts  = binAroundValve(goodClusters, binEdges);%,'smooth');
 spkAvg = mean(spkCounts ,3);
 spkZ = zscore(spkAvg,0, 2);
@@ -99,7 +95,6 @@ spkZ = zscore(spkAvg,0, 2);
 figure(123); clf
 % title('Average spiking after valve open')
 hold on
-x_time = binEdges(1:end-1) + (binEdges(2)-binEdges(1))/2;
 addShadedLine(x_time, spkZ(isControl,:), {'Color', controlColor});
 addShadedLine(x_time, spkZ(isDrink,:), {'Color', drinkColor});
 addShadedLine(x_time, spkZ(isInject,:), {'Color', injectColor});
