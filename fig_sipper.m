@@ -95,51 +95,14 @@ spkCounts  = binAroundValve(goodClusters, binEdges);%,'smooth');
 spkAvg = mean(spkCounts ,3);
 spkZ = zscore(spkAvg,0, 2);
 
-
-control = spkZ(isControl,:);
-drink = spkZ(isDrink,:);
-inject = spkZ(isInject,:);
-
-%% Spikes around sipper valve - heatmap
-figure(1); clf
-t = tiledlayout(3,1,'TileSpacing','Compact','Padding','Compact');
-
-cLabel = 'zscore';
-cRange = [-.5,8];
-
-nexttile
-plotSpikeHeatmapWithBpod(control, binEdges, [], cLabel,cRange)
-x = [(0-binEdges(1))/binWidth, (10.1-binEdges(1))/binWidth];
-scatter(x, [0,0], 'r*')
-yL = ylim();
-ylim([0,yL(2)])
-set(gca,'xticklabel',{[]})
-title('Control')
-
-nexttile
-plotSpikeHeatmapWithBpod(drink, binEdges, [], cLabel,cRange)
-scatter(x, [0,0], 'r*')
-yL = ylim();
-ylim([0,yL(2)])
-set(gca,'xticklabel',{[]})
-title('Drink')
-
-nexttile
-plotSpikeHeatmapWithBpod(inject, binEdges, [], cLabel,cRange)
-scatter(x, [0,0], 'r*')
-yL = ylim();
-ylim([0,yL(2)])
-title('Inject')
-xlabel('Time (0.1s bins)')
-
 %% Spikes around sipper valve - mean
 figure(123); clf
 % title('Average spiking after valve open')
 hold on
 x_time = binEdges(1:end-1) + (binEdges(2)-binEdges(1))/2;
-addShadedLine(x_time, control, {'Color', controlColor});
-addShadedLine(x_time, drink, {'Color', drinkColor});
-addShadedLine(x_time, inject, {'Color', injectColor});
+addShadedLine(x_time, spkZ(isControl,:), {'Color', controlColor});
+addShadedLine(x_time, spkZ(isDrink,:), {'Color', drinkColor});
+addShadedLine(x_time, spkZ(isInject,:), {'Color', injectColor});
 yline(0)
 
 ylim([-1.1,2])
