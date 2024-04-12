@@ -353,12 +353,12 @@ hold on
 x_time = binEdges(1:end-1) + (binEdges(2)-binEdges(1))/2;
 plot(x_time, score(:,1),'LineWidth',2,'Color',[.8,0,.2,1]);
 plot(x_time, score(:,2),'LineWidth',2,'Color',[0,0,1,.5]);
-plot(x_time, score(:,3),'LineWidth',2,'Color',[0,.8,.2,.5]);
+% plot(x_time, score(:,3),'LineWidth',2,'Color',[0,.8,.2,.5]);
 %plot(x_time, score(:,4),'LineWidth',2,'Color',[.5,.5,.5,.5]);
 
 xlabel('Time (s)');
 ylabel('Z-score');
-xlim([binEdges(1), binEdges(end)])
+xlim([x_time(1), x_time(end)])
 
 hold on
 yline(0)
@@ -370,7 +370,6 @@ plot([10.1,10.1],ylim,'--','Color',[.5,.5,.5])
 leg = legend({'PC1';'PC2';'PC3'},'Location','best');
 legend('boxoff')
 leg.ItemTokenSize = [5,4];
-xlim([binEdges(1), binEdges(end)])
 
 
 f = gcf;
@@ -378,32 +377,34 @@ f.Units = "inches";
 f.Position = [2,2,3.3,1.75];
 exportgraphics(gcf,[figFolder,'pca_score.pdf'], "ContentType","vector", "BackgroundColor","none")
 
-
-
 %% PC1 loadings, split by group  (mountain plot)
 figure(123); clf
-[f,x] = ecdf(coeff(isControl,1));
+
+interestingPC = 1;
+
+[f,x] = ecdf(coeff(isControl,interestingPC));
 f(f>0.5) = 1 - f(f>0.5);
 plot(x,f,'LineWidth',1.5,'Color',controlColor)
 hold on
 
-[f,x] = ecdf(coeff(isDrink,1));
+[f,x] = ecdf(coeff(isDrink,interestingPC));
 f(f>0.5) = 1 - f(f>0.5);
 plot(x,f,'LineWidth',1.5,'Color',drinkColor)
 
-[f,x] = ecdf(coeff(isInject,1));
+[f,x] = ecdf(coeff(isInject,interestingPC));
 f(f>0.5) = 1 - f(f>0.5);
 plot(x,f,'LineWidth',1.5,'Color', injectColor)
 
 xline(0)
-xlabel('PC1 loading (coeff)')
+xlabel(['PC', num2str(interestingPC), ' loadings'])
+xlim([-.05,.18])
 ylabel('Folded probability')
 legend("Control","Drink", "Inject","Location","northwest")
 
-[h,p] = kstest2(coeff(isControl,1),coeff(isDrink,1) );
+[h,p] = kstest2(coeff(isControl,2),coeff(isDrink,2) );
 % text(-.14,.4,['CvD p=',num2str(p*2,2)], 'FontSize',5)
 
-[h,p] = kstest2(coeff(isControl,1),coeff(isInject,1) );
+[h,p] = kstest2(coeff(isControl,2),coeff(isInject,2) );
 % text(-.14,.35,['CvI p=',num2str(p*2,2)], 'FontSize',5)
 
 % pc1_Thresh = -.05;
@@ -416,6 +417,74 @@ f = gcf;
 f.Units = "inches";
 f.Position = [2,2,2,1.7];
 exportgraphics(gcf,[figFolder,'pca_PC1Mountain.pdf'])
+
+
+%% PC2 loadings, split by group  (mountain plot)
+figure(123); clf
+
+interestingPC = 2;
+
+[f,x] = ecdf(coeff(isControl,interestingPC));
+f(f>0.5) = 1 - f(f>0.5);
+plot(x,f,'LineWidth',1.5,'Color',controlColor)
+hold on
+
+[f,x] = ecdf(coeff(isDrink,interestingPC));
+f(f>0.5) = 1 - f(f>0.5);
+plot(x,f,'LineWidth',1.5,'Color',drinkColor)
+
+[f,x] = ecdf(coeff(isInject,interestingPC));
+f(f>0.5) = 1 - f(f>0.5);
+plot(x,f,'LineWidth',1.5,'Color', injectColor)
+
+xline(0)
+xlabel(['PC', num2str(interestingPC), ' loadings'])
+xlim([-.1,.18])
+ylabel('Folded probability')
+legend("Control","Drink", "Inject","Location","northwest")
+
+[h,p] = kstest2(coeff(isControl,2),coeff(isDrink,2) );
+% text(-.14,.4,['CvD p=',num2str(p*2,2)], 'FontSize',5)
+
+[h,p] = kstest2(coeff(isControl,2),coeff(isInject,2) );
+% text(-.14,.35,['CvI p=',num2str(p*2,2)], 'FontSize',5)
+
+% pc1_Thresh = -.05;
+% plot([pc1_Thresh,pc1_Thresh], [0,.5], '-.k')
+leg = legend("Control","Drink", "Inject","Location","northwest");
+legend('boxoff')
+leg.ItemTokenSize = [5,4];
+
+f = gcf;
+f.Units = "inches";
+f.Position = [2,2,2,1.7];
+exportgraphics(gcf,[figFolder,'pca_PC2Mountain.pdf'])
+
+
+
+
+%% Plot PC1 vs. PC2
+figure(11)
+scatter(coeff(isInject,1), coeff(isInject,2), 'filled')
+yline(0)
+xline(0)
+title('Inject')
+
+figure(12)
+scatter(coeff(isDrink,1), coeff(isDrink,2), 'filled')
+yline(0)
+xline(0)
+title('Drink')
+
+figure(13)
+scatter(coeff(isControl,1), coeff(isControl,2), 'filled')
+yline(0)
+xline(0)
+title('Control')
+
+
+
+
 
 %%
 function vals = val2Ind(x, vals)
