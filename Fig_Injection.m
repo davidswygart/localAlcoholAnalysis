@@ -8,25 +8,17 @@ load("goodClusters.mat")
 controlColor = [64, 4, 86]/255;
 drinkColor = [3, 104, 67]/255;
 injectColor = [217,95,2]/255;
-%% spikes around injection 
+
+isControl = contains(goodClusters.group,'control') | contains(goodClusters.group,'drink');
+isInject = contains(goodClusters.group,'inject');
+%% Bin spikes around injection 
 binWidth=10;
 %binEdges = (-60*10):binWidth:(60*12);
 target = 'microInjectionStart';
 binEdges = -200:binWidth:720;
-% binEdges = 0:binWidth:60*12;
-cLabel = 'zscore';
-cRange = [-.4,6];
 
-[spkCounts,  bpod]  = binAroundTarget(goodClusters, target, binEdges, 'smooth');
+[spkCounts,  bpod]  = binAroundTarget(goodClusters, target, binEdges);
 spkZ = zscore(spkCounts,0, 2);
-
-figure(1); clf
-plotSpikeHeatmapWithBpod(spkZ, binEdges, bpod, cLabel,cRange)
-xlabel('Time (10s bins)')
-
-isControl = contains(goodClusters.group,'control') | contains(goodClusters.group,'drink');
-isInject = contains(goodClusters.group,'inject');
-
 %% spikes around injection (average)
 f = figure(123); clf
 x_time = binEdges(1:end-1) + (binEdges(2)-binEdges(1))/2;
@@ -45,7 +37,7 @@ ylim([-.8,1])
 xlabel('Time (s)')
 ylabel('Z-score')
 
-leg = legend('Control','Inject','Location','best');
+leg = legend('aCSF','aCSF + EtOH','Location','best');
 legend('boxoff')
 leg.ItemTokenSize = [5,4];
 
@@ -409,7 +401,7 @@ xline(0)
 %uistack(l, 'bottom');
 xlabel('Lag (s)')
 ylabel('Spiking correlation to [EtOH]')
-leg = legend("Control", "Inject", 'Location', 'northwest');
+leg = legend('aCSF','aCSF + EtOH', 'Location', 'northwest');
 legend('boxoff')
 leg.ItemTokenSize = [5,4];
 xlim([-800,800])
@@ -439,7 +431,7 @@ ylabel('Folded probability')
 title(['Spike lag ', num2str(lagPoint), 's'])
 
 plot([0,0],[0,.5], 'k--')
-legend("Control","Inject")
+legend('aCSF','aCSF + EtOH')
 
 %% Scatter plot correlation vs distance for lag point
 figure(10); clf
