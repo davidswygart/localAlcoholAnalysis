@@ -5,9 +5,13 @@ d_lowEk = load("diffusion_ek0p8.mat");
 d_highEk = load("diffusion_ek2.mat");
 load("goodClusters.mat")
 
-controlColor = [64, 4, 86]/255;
-drinkColor = [3, 104, 67]/255;
+controlColor = [65, 2, 87]/255;
 injectColor = [217,95,2]/255;
+
+PC1_color = [55,126,184]/255;
+PC2_color = [228,26,28]/255;
+
+injectBoxTransparency = 0.2;
 
 isControl = contains(goodClusters.group,'control') | contains(goodClusters.group,'drink');
 isInject = contains(goodClusters.group,'inject');
@@ -20,26 +24,28 @@ binEdges = -200:binWidth:720;
 [spkCounts,  bpod]  = binAroundTarget(goodClusters, target, binEdges);
 spkZ = zscore(spkCounts,0, 2);
 %% spikes around injection (average)
-f = figure(123); clf
+figure(123); clf; hold on;
+
+yLim = [-.8,1];
+ylim(yLim);
+xlim([x_time(1), x_time(end)]);
+rectangle(Position=[0,yLim(1),120,yLim(2)-yLim(1)], FaceColor=[0,0,0,injectBoxTransparency], EdgeColor='none')
+text(60,0.8,'Injection','HorizontalAlignment','center','VerticalAlignment','bottom')
+
 x_time = binEdges(1:end-1) + (binEdges(2)-binEdges(1))/2;
 addShadedLine(x_time,spkZ(isControl,:),{'Color', controlColor});
-hold on
+
 addShadedLine(x_time,spkZ(isInject,:),{'Color', injectColor});
 yline(0)
 
-%plotBpod(bpod)
-plot([0,120], [.9,.9], 'Color',[.5,.5,.5], 'LineWidth',2)
-text(60,0.9,'Injection','HorizontalAlignment','center','VerticalAlignment','bottom')
 
-xlim([x_time(1), x_time(end)])
-ylim([-.8,1])
 
 xlabel('Time (s)')
 ylabel('Z-score')
 
-leg = legend('aCSF','aCSF + EtOH','Location','best');
-legend('boxoff')
-leg.ItemTokenSize = [5,4];
+% leg = legend('aCSF','aCSF + EtOH','Location','best');
+% legend('boxoff')
+% leg.ItemTokenSize = [5,4];
 
 f = gcf;
 f.Units = "inches";
@@ -50,7 +56,7 @@ exportgraphics(gcf,[figFolder,'grandMean.pdf'], "ContentType","vector","Backgrou
 [coeff,score,latent,~,explained] = pca(spkZ'); % <-- Data are (time(bins) x neurons)
 
 %% Plot explained variance or Scree
-f = figure(123);clf
+figure(123);clf
 % plot(latent,'.-')
 ylabel('Eigenvalue')
 bar(explained,'k');  
@@ -144,15 +150,15 @@ hold on
 
 thisDist = 43;
 shadedErrorBar(diffusion.time, diffusion.conc_mean(thisDist,:), diffusion.conc_range(thisDist,:), ...
-    'LineProps', {'b-','LineWidth',1})
+    'LineProps', {'b-','LineWidth',1});
 
 thisDist = 53;
 shadedErrorBar(diffusion.time, diffusion.conc_mean(thisDist,:), diffusion.conc_range(thisDist,:), ...
-    'LineProps', {'g-','LineWidth',1})
+    'LineProps', {'g-','LineWidth',1});
 
 thisDist = 69;
 shadedErrorBar(diffusion.time, diffusion.conc_mean(thisDist,:), diffusion.conc_range(thisDist,:), ...
-    'LineProps', {'r-','LineWidth',1})
+    'LineProps', {'r-','LineWidth',1});
 
 plot([0,120], [240,240], 'Color',[.5,.5,.5], 'LineWidth',2)
 % plot([120,120],ylim,'r--')
@@ -179,7 +185,7 @@ yyaxis left
 linInd = sub2ind(size(diffusion.conc_mean), (1:length(inds))', inds);
 peakConc_range =  diffusion.conc_range(linInd);
 shadedErrorBar(diffusion.dist,peakConc,peakConc_range, ...
-        'LineProps', {'-k','LineWidth',1})
+        'LineProps', {'-k','LineWidth',1});
 ax = gca;
 ax.YColor = 'k';
 ylabel('Predicted peak [EtOH] (mg/dL)','Color', 'k')
@@ -229,7 +235,7 @@ ylabel('Spiking (Z-score)')
 xp = 0:2:160;
 [yp, delta] = polyval(p, xp, S);
 hold on
-shadedErrorBar(xp,yp,delta)
+shadedErrorBar(xp,yp,delta);
 xlim([0,165])
 
 
@@ -304,16 +310,16 @@ exportgraphics(gcf,[figFolder,'concentration_stackedBar.pdf'],"ContentType","vec
 figure(123); clf;
 hold on
 y = spkZ(rho<0 & pval<.05 & isControl,:);
-addShadedLine(x_time, y, {'Color', nCorrColor, 'Linewidth', 1})
+addShadedLine(x_time, y, {'Color', nCorrColor, 'Linewidth', 1});
 
 y = spkZ(rho>0 & pval<.05 & isControl,:);
-addShadedLine(x_time, y, {'Color', pCorrColor, 'Linewidth', 1})
+addShadedLine(x_time, y, {'Color', pCorrColor, 'Linewidth', 1});
 
 xlim([x_time(1), x_time(end)])
 yline(0)
 ylim([-1,2.5])
 
-plot([0,120], [2.3,2.3], 'Color',[.5,.5,.5], 'LineWidth',2)
+plot([0,120], [2.3,2.3], 'Color',[.5,.5,.5], 'LineWidth',2);
 % xlabel('Time (s)')
 set(gca, "XTick", [])
 ylabel(["Control","Z-score"])
@@ -330,10 +336,10 @@ exportgraphics(gcf,[figFolder,'Control_corr.pdf'])
 figure(123); clf;
 hold on
 y = spkZ(rho<0 & pval<.05 & isInject,:);
-addShadedLine(x_time, y,{'Color', nCorrColor, 'Linewidth', 1})
+addShadedLine(x_time, y,{'Color', nCorrColor, 'Linewidth', 1});
 
 y = spkZ(rho>0 & pval<.05 & isInject,:);
-addShadedLine(x_time, y,{'Color', pCorrColor, 'Linewidth', 1})
+addShadedLine(x_time, y,{'Color', pCorrColor, 'Linewidth', 1});
 
 xlim([x_time(1), x_time(end)])
 yline(0)
