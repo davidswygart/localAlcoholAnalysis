@@ -39,6 +39,7 @@ scatter(ones(length(injectedConsumed),1)*2.75 + .5*rand(length(injectedConsumed)
 
 ylabel('Fluid consumed (ml/kg)')
 
+f = gcf;
 f.Units = "inches";
 f.Position = [2,2,2,2];
 exportgraphics(gcf,[figFolder,'volumeConsumed.pdf'],"BackgroundColor","none","ContentType","vector")
@@ -82,6 +83,7 @@ leg = legend('Control','EtOH consumed','EtOH injected','Location','northeast');
 legend('boxoff')
 leg.ItemTokenSize = [5,4];
 
+f = gcf;
 f.Units = "inches";
 f.Position = [2,2,4.1,2];
 exportgraphics(gcf,[figFolder,'grandMean.pdf'], "ContentType","vector","BackgroundColor","none")
@@ -151,7 +153,7 @@ xlabel('Time (s)')
 xlim([x_time(1), x_time(end)])
 
 
-leg = legend('Control', 'Drink', 'Inject',Location='north');
+leg = legend('Control','EtOH consumed','EtOH injected',Location='north');
 legend('boxoff')
 leg.ItemTokenSize = [5,4];
 
@@ -201,7 +203,7 @@ ylim([-15,30])
 plot([0,0],ylim,'--','Color',[.5,.5,.5])
 plot([10.1,10.1],ylim,'--','Color',[.5,.5,.5])
 
-leg = legend({'PC1';'PC2';'PC3'},'Location','best');
+leg = legend({'PC1';'PC2'},'Location','best');
 legend('boxoff')
 leg.ItemTokenSize = [5,4];
 
@@ -233,7 +235,7 @@ xline(0)
 xlabel(['PC', num2str(interestingPC), ' loadings'])
 xlim([-.05,.18])
 ylabel('Folded probability')
-legend("Control","Drink", "Inject","Location","northwest")
+legend('Control','EtOH consumed','EtOH injected',"Location","northwest")
 
 [h,p] = kstest2(coeff(isControl,2),coeff(isDrink,2) );
 % text(-.14,.4,['CvD p=',num2str(p*2,2)], 'FontSize',5)
@@ -243,7 +245,7 @@ legend("Control","Drink", "Inject","Location","northwest")
 
 % pc1_Thresh = -.05;
 % plot([pc1_Thresh,pc1_Thresh], [0,.5], '-.k')
-leg = legend("Control","Drink", "Inject","Location","northeast");
+leg = legend('Control','EtOH consumed','EtOH injected',"Location","northeast");
 legend('boxoff')
 leg.ItemTokenSize = [5,4];
 
@@ -275,7 +277,6 @@ xline(0)
 xlabel(['PC', num2str(interestingPC), ' loadings'])
 xlim([-.1,.18])
 ylabel('Folded probability')
-legend("Control","Drink", "Inject","Location","northwest")
 
 [h,p] = kstest2(coeff(isControl,2),coeff(isDrink,2) );
 % text(-.14,.4,['CvD p=',num2str(p*2,2)], 'FontSize',5)
@@ -285,7 +286,7 @@ legend("Control","Drink", "Inject","Location","northwest")
 
 % pc1_Thresh = -.05;
 % plot([pc1_Thresh,pc1_Thresh], [0,.5], '-.k')
-leg = legend("Control","Drink", "Inject","Location","northwest");
+leg = legend('Control','EtOH consumed','EtOH injected',"Location","northwest");
 legend('boxoff')
 leg.ItemTokenSize = [5,4];
 
