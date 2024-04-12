@@ -12,7 +12,6 @@ isDrink = contains(goodClusters.group,'drink');
 isInject = contains(goodClusters.group,'inject');
 
 %% Fluid consumed
-
 group.mlPerkg = 1000 * group.fluidConsumed ./ group.mouseWeight;
 
 controlConsumed = group.mlPerkg(contains(group.group,'control'));
@@ -44,32 +43,7 @@ f.Units = "inches";
 f.Position = [2,2,2,2];
 exportgraphics(gcf,[figFolder,'volumeConsumed.pdf'],"BackgroundColor","none","ContentType","vector")
 
-%% brain ethanol 
-drinkEthanol = group.brainAlcohol(group.brainAlcohol>0); %hacky because they are the only ones with detectable ethanol
 
-figure(123);clf; hold on
-groupNames = ["Control", "Drink", "Inject"];
-x = categorical(groupNames);
-x = reordercats(x,groupNames);
-y = [0, mean(drinkEthanol), 0];
-err = [0, std(drinkEthanol)/sqrt(length(drinkEthanol)), 0];
-
-b = bar(x,y);
-b.FaceColor = 'flat';
-b.CData(1,:) = controlColor;
-b.CData(2,:) = drinkColor;
-b.CData(3,:) = injectColor;
-errorbar(x,y,err,'k', 'LineStyle','none')
-% 
-
-scatter(ones(length(drinkEthanol),1)*1.75 + .5*rand(length(drinkEthanol),1) , drinkEthanol, 'k.')
-
-
-ylabel('Brain [EtOH] (mg/dL)')
-
-f.Units = "inches";
-f.Position = [2,2,2,2];
-exportgraphics(gcf,[figFolder,'brainEthanol.pdf'],"BackgroundColor","none","ContentType","vector")
 %% spikes around drinking 
 binWidth=10;
 %binEdges = (-60*10):binWidth:(60*12);
@@ -104,7 +78,7 @@ ylim([-.8,1.1])
 xlabel('Time (s)')
 ylabel('Z-score')
 
-leg = legend('Control','Drink','Inject','Location','northeast');
+leg = legend('Control','EtOH consumed','EtOH injected','Location','northeast');
 legend('boxoff')
 leg.ItemTokenSize = [5,4];
 
@@ -161,9 +135,9 @@ figure(123); clf
 % title('Average spiking after valve open')
 hold on
 x_time = binEdges(1:end-1) + (binEdges(2)-binEdges(1))/2;
-addShadedLine(x_time, control, {'Color', controlColor})
-addShadedLine(x_time, drink, {'Color', drinkColor})
-addShadedLine(x_time, inject, {'Color', injectColor})
+addShadedLine(x_time, control, {'Color', controlColor});
+addShadedLine(x_time, drink, {'Color', drinkColor});
+addShadedLine(x_time, inject, {'Color', injectColor});
 yline(0)
 
 ylim([-1.1,2])
@@ -254,9 +228,9 @@ figure(7);clf
 
 hold on
 title('"Inh" peak (1.6-3.2s after valve)')
-addShadedLine([],inh(isControl,:), {'Color', controlColor})
-addShadedLine([],inh(isDrink,:),{'Color', drinkColor})
-addShadedLine([],inh(isInject,:),{'Color', injectColor})
+addShadedLine([],inh(isControl,:), {'Color', controlColor});
+addShadedLine([],inh(isDrink,:),{'Color', drinkColor});
+addShadedLine([],inh(isInject,:),{'Color', injectColor});
 plot(xlim(), [0,0], '--k')
 legend('control', 'drink', 'inject')
 xlabel('Time (valve group #)')
@@ -270,11 +244,11 @@ t = tiledlayout(3,1,'TileSpacing','Compact','Padding','Compact');
 nexttile
 hold on
 y = spkZ_clumped(isControl,:,1);
-addShadedLine(x_time, y, {'Color',controlColor})
+addShadedLine(x_time, y, {'Color',controlColor});
 y = spkZ_clumped(isDrink,:,1);
-addShadedLine(x_time, y, {'Color', drinkColor})
+addShadedLine(x_time, y, {'Color', drinkColor});
 y = spkZ_clumped(isInject,:,1);
-addShadedLine(x_time, y, {'Color', injectColor})
+addShadedLine(x_time, y, {'Color', injectColor});
 
 yline(0)
 ylabel('Z-score')
@@ -287,11 +261,11 @@ xlim([x_time(1), x_time(end)])
 nexttile
 hold on
 y = spkZ_clumped(isControl,:,3);
-addShadedLine(x_time, y, {'Color',controlColor})
+addShadedLine(x_time, y, {'Color',controlColor});
 y = spkZ_clumped(isDrink,:,3);
-addShadedLine(x_time, y, {'Color',drinkColor})
+addShadedLine(x_time, y, {'Color',drinkColor});
 y = spkZ_clumped(isInject,:,3);
-addShadedLine(x_time, y, {'Color',injectColor})
+addShadedLine(x_time, y, {'Color',injectColor});
 
 yline(0)
 plot([0,0],ylim,'--','Color',[.5,.5,.5])
@@ -302,11 +276,11 @@ ylabel('zscore')
 nexttile
 hold on
 y = spkZ_clumped(isControl,:,5);
-addShadedLine(x_time, y,  {'Color',controlColor})
+addShadedLine(x_time, y,  {'Color',controlColor});
 y = spkZ_clumped(isDrink,:,5);
-addShadedLine(x_time, y, {'Color',drinkColor})
+addShadedLine(x_time, y, {'Color',drinkColor});
 y = spkZ_clumped(isInject,:,5);
-addShadedLine(x_time, y, {'Color',injectColor})
+addShadedLine(x_time, y, {'Color',injectColor});
 
 yline(0)
 plot([0,0],ylim,'--','Color',[.5,.5,.5])
