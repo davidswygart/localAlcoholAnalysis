@@ -45,20 +45,23 @@ f.Position = [2,2,2,2];
 exportgraphics(gcf,[figFolder,'volumeConsumed.pdf'],"BackgroundColor","none","ContentType","vector")
 
 
-%% spikes around drinking  Full time;
+%% Bin spikes around drinking  Full time;
 binWidth=10;
 target = 'sipperStart';
-binEdges = -200:binWidth:1200;
-x_fullTime = binEdges(1:end-1) + (binEdges(2)-binEdges(1))/2;
-cLabel = 'zscore';
-cRange = [-.4,6];
+binEdges = -1320:binWidth:1500;
+x_fullTime = binEdges(1:end-1);
 
 [spkCounts,  bpod]  = binAroundTarget(goodClusters, target, binEdges);%, 'smooth');
 spkZ_fullTime = zscore(spkCounts,0, 2);
+spkZ_fullTime = spkZ_fullTime - mean(spkZ_fullTime(:,x_fullTime<0 & x_fullTime>=-100), 2);
 
-%% spikes around drinking Full time (average)
-f = figure(123); clf
-hold on
+startTime = -200;
+stopTime = 1400;
+spkZ_fullTime = spkZ_fullTime(:, x_fullTime>=startTime & x_fullTime<=stopTime);
+x_fullTime = x_fullTime(x_fullTime>=startTime & x_fullTime<=stopTime);
+
+% spikes around drinking Full time (average)
+figure(123); clf; hold on
 
 addShadedLine(x_fullTime,spkZ_fullTime(isControl,:),{'Color', controlColor});
 addShadedLine(x_fullTime,spkZ_fullTime(isDrink,:),{'Color', drinkColor});
@@ -85,12 +88,18 @@ exportgraphics(gcf,[figFolder,'grandMean.pdf'], "ContentType","vector","Backgrou
 
 %% Spikes around sipper valve
 binWidth=0.1;
-binEdges = -1:binWidth:14;
-x_time = binEdges(1:end-1) + (binEdges(2)-binEdges(1))/2;
+binEdges = -1320:binWidth:1500;
+target = 'sipperStart';
+[tempCounts,  ~]  = binAroundTarget(goodClusters, target, binEdges);
+clusterSTD = std(tempCounts, 0 ,2);
+clusterMean = mean(tempCounts,2);
+
+binEdges = -2:binWidth:14;
+x_time = binEdges(1:end-1);
 spkCounts  = binAroundValve(goodClusters, binEdges);%,'smooth');
 spkAvg = mean(spkCounts ,3);
-spkZ = zscore(spkAvg,0, 2);
-
+spkZ = (spkAvg-clusterMean) ./  clusterSTD;
+spkZ = spkZ - mean(spkZ(:, x_time<0 & x_time>=-1),2);
 %% Spikes around sipper valve - mean
 figure(123); clf
 % title('Average spiking after valve open')
@@ -100,11 +109,9 @@ addShadedLine(x_time, spkZ(isDrink,:), {'Color', drinkColor});
 addShadedLine(x_time, spkZ(isInject,:), {'Color', injectColor});
 yline(0)
 
-ylim([-1.1,2])
+ylim([-.15,.35])
 plot([0,0],ylim,'--','Color',[.5,.5,.5])
 plot([10.1,10.1],ylim,'--','Color',[.5,.5,.5])
-text(0.1,1.7,["Fluid" "deployed"])
-text(10.2,1.7,["Fluid" "removed"])
 
 ylabel('Z-score')
 xlabel('Time (s)')
@@ -133,7 +140,7 @@ bar(explained,'k');
 % bar(cumsum(explained),'k');
 ylabel('Explained variance (%)')
 xlabel('PC')
-xlim([.50,5.5])
+xlim([.50,4.5])
 
 f = gcf;
 f.Units = "inches";
@@ -144,7 +151,6 @@ exportgraphics(gcf,[figFolder,'pca_scree.pdf'],"ContentType","vector","Backgroun
 figure(123); clf
 hold on
 
-x_time = binEdges(1:end-1) + (binEdges(2)-binEdges(1))/2;
 plot(x_time, score(:,1),'LineWidth',2,'Color',[.8,0,.2,1]);
 plot(x_time, score(:,2),'LineWidth',2,'Color',[0,0,1,.5]);
 % plot(x_time, score(:,3),'LineWidth',2,'Color',[0,.8,.2,.5]);
@@ -157,7 +163,7 @@ xlim([x_time(1), x_time(end)])
 hold on
 yline(0)
 
-ylim([-15,30])
+ylim([-3,8])
 plot([0,0],ylim,'--','Color',[.5,.5,.5])
 plot([10.1,10.1],ylim,'--','Color',[.5,.5,.5])
 
@@ -191,7 +197,7 @@ plot(x,f,'LineWidth',1.5,'Color', injectColor)
 
 xline(0)
 xlabel(['PC', num2str(interestingPC), ' loadings'])
-xlim([-.05,.18])
+xlim([-.1,.3])
 ylabel('Folded probability')
 legend('Control','EtOH consumed','EtOH injected',"Location","northwest")
 
@@ -233,20 +239,21 @@ plot(x,f,'LineWidth',1.5,'Color', injectColor)
 
 xline(0)
 xlabel(['PC', num2str(interestingPC), ' loadings'])
-xlim([-.1,.18])
-ylabel('Folded probability')
+xlim([-.2,.22])
+% ylabel('Folded probability')
 
 [h,p] = kstest2(coeff(isControl,2),coeff(isDrink,2) );
 % text(-.14,.4,['CvD p=',num2str(p*2,2)], 'FontSize',5)
+set(gca,'Yticklabel',[]) 
 
 [h,p] = kstest2(coeff(isControl,2),coeff(isInject,2) );
 % text(-.14,.35,['CvI p=',num2str(p*2,2)], 'FontSize',5)
 
 % pc1_Thresh = -.05;
 % plot([pc1_Thresh,pc1_Thresh], [0,.5], '-.k')
-leg = legend('Control','EtOH consumed','EtOH injected',"Location","northwest");
-legend('boxoff')
-leg.ItemTokenSize = [5,4];
+% leg = legend('Control','EtOH consumed','EtOH injected',"Location","northwest");
+% legend('boxoff')
+% leg.ItemTokenSize = [5,4];
 
 f = gcf;
 f.Units = "inches";
