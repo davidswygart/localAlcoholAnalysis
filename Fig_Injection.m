@@ -19,26 +19,27 @@ isInject = contains(goodClusters.group,'inject');
 binWidth=10;
 %binEdges = (-60*10):binWidth:(60*12);
 target = 'microInjectionStart';
-binEdges = -200:binWidth:720;
-
+binEdges = -600:binWidth:2220;
+x_time = binEdges(1:end-1);
 [spkCounts,  bpod]  = binAroundTarget(goodClusters, target, binEdges);
 spkZ = zscore(spkCounts,0, 2);
+spkZ = spkZ - mean(spkZ(:,x_time<0 & x_time>=-100), 2);
+
+spkZ = spkZ(:, x_time>=-200 & x_time<=60*12);
+x_time = x_time(x_time>=-200 & x_time<=60*12);
+binEdges = [x_time, x_time(end)+binWidth];
 %% spikes around injection (average)
 figure(123); clf; hold on;
 
 yLim = [-.8,1];
 ylim(yLim);
-xlim([x_time(1), x_time(end)]);
+xlim([x_time(1),x_time(end)]);
 rectangle(Position=[0,yLim(1),120,yLim(2)-yLim(1)], FaceColor=[0,0,0,injectBoxTransparency], EdgeColor='none')
 text(60,0.8,'Injection','HorizontalAlignment','center','VerticalAlignment','bottom')
-
-x_time = binEdges(1:end-1) + (binEdges(2)-binEdges(1))/2;
 addShadedLine(x_time,spkZ(isControl,:),{'Color', controlColor});
 
 addShadedLine(x_time,spkZ(isInject,:),{'Color', injectColor});
 yline(0)
-
-
 
 xlabel('Time (s)')
 ylabel('Z-score')
@@ -64,6 +65,7 @@ bar(explained,'k');
 ylabel(["Explained", "variance (%)"])
 xlabel('PC')
 xlim([.50,4.5])
+ylim([0,20])
 
 f = gcf;
 f.Units = "inches";
@@ -74,7 +76,6 @@ exportgraphics(gcf,[figFolder,'Scree.pdf'],"ContentType","vector",BackgroundColo
 f = figure(123);clf
 hold on
 
-x_time = binEdges(1:end-1) + (binEdges(2)-binEdges(1))/2;
 plot(x_time, score(:,1),'LineWidth',1.5,'Color',[.8,0,.2,.3]);
 plot(x_time, score(:,2),'LineWidth',2,'Color',[0,0,1,1]);
 %plot(x_time, score(:,3),'LineWidth',1.5,'Color',[0,.8,.2,.3]);
@@ -90,7 +91,7 @@ yline(0)
 leg = legend({'PC1';'PC2'},'Location','best');
 legend('boxoff')
 leg.ItemTokenSize = [5,4];
-xlim([binEdges(1), binEdges(end)])
+xlim([x_time(1), x_time(end)])
 
 f.Units = "inches";
 f.Position = [2,2,3,2];
@@ -100,11 +101,11 @@ exportgraphics(gcf,[figFolder,'pca_score.pdf'])
 figure(123);clf
 [f,x] = ecdf(coeff(isControl,2));
 f(f>0.5) = 1 - f(f>0.5);
-plot(x,f,'LineWidth',2,'Color',controlColor)
+plot(x,f,'LineWidth',1,'Color',controlColor)
 hold on
 [f,x] = ecdf(coeff(isInject,2));
 f(f>0.5) = 1 - f(f>0.5);
-plot(x,f,'LineWidth',2,'Color',injectColor)
+plot(x,f,'LineWidth',1,'Color',injectColor)
 
 xline(0)
 xlabel('PC2 loadings')
@@ -113,6 +114,7 @@ ylabel('Probability')
 % legend('boxoff')
 % leg.ItemTokenSize = [5,4];
 
+xlim([-.12, 0.12])
 ylim([0,.5])
 
 [h,p] = kstest2(coeff(isControl,2),coeff(isInject,2) );
@@ -139,9 +141,9 @@ diffusion.conc_range = cat(2, zeros(size(diffusion.conc_mean, 1),1), diffusion.c
 
 %% Calculate the lowest 10%, median, and top 10% of cluster distances
 sortedDist = sort(goodClusters.distFromInj(contains(goodClusters.group,'inject')));
-sortedDist(round(length(sortedDist)*0.1))
-sortedDist(round(length(sortedDist)*0.5))
-sortedDist(round(length(sortedDist)*0.9))
+sortedDist(round(length(sortedDist)*0.1));
+sortedDist(round(length(sortedDist)*0.5));
+sortedDist(round(length(sortedDist)*0.9));
 
 %% plot concentration at different distances
 figure(123); clf
@@ -380,10 +382,13 @@ r = nan(size(conc,1), length(r));
 r_shuff = r;
 
 for i=1:size(conc,1)
-    r(i,:) = xcorr(spkZ(i,:), conc(i,:), 'normalized');
-    spk_shuff = spkZ(i,randperm(size(spkZ,2)));
-    r_shuff(i,:) = xcorr(spk_shuff,conc(i,:) ,'normalized');
+    x = spkZ(i,:) - mean(spkZ(i,:));
+    y = conc(i,:);% - mean(conc(i,:));
+    r(i,:) = xcorr(x,y, 'normalized');
 
+    x = x(randperm(length(x)));
+    % y = y(randperm(length(y)));
+    r_shuff(i,:) = xcorr(x,y,'normalized');
 end
 
 %% Plot mean cross correlation (split by type)
