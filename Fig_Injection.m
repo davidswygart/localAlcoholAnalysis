@@ -11,6 +11,9 @@ injectColor = [217,95,2]/255;
 PC1_color = [55,126,184]/255;
 PC2_color = [228,26,28]/255;
 
+positiveCorr_color = [216,179,101]/255;
+negativeCorr_color = [90,180,172]/255;
+
 injectBoxTransparency = 0.2;
 
 isControl = contains(goodClusters.group,'control') | contains(goodClusters.group,'drink');
@@ -31,13 +34,12 @@ binEdges = [x_time, x_time(end)+binWidth];
 %% spikes around injection (average)
 figure(123); clf; hold on;
 
-yLim = [-.8,1];
+yLim = [-.75,.75];
 ylim(yLim);
 xlim([x_time(1),x_time(end)]);
 rectangle(Position=[0,yLim(1),120,yLim(2)-yLim(1)], FaceColor=[0,0,0,injectBoxTransparency], EdgeColor='none')
-text(60,0.8,'Injection','HorizontalAlignment','center','VerticalAlignment','bottom')
+% text(60,0.8,'Injection','HorizontalAlignment','center','VerticalAlignment','bottom')
 addShadedLine(x_time,spkZ(isControl,:),{'Color', controlColor});
-
 addShadedLine(x_time,spkZ(isInject,:),{'Color', injectColor});
 yline(0)
 
@@ -50,7 +52,7 @@ ylabel('Z-score')
 
 f = gcf;
 f.Units = "inches";
-f.Position = [2,2,4.1,2];
+f.Position = [2,2,          4,           1.8];
 exportgraphics(gcf,[figFolder,'grandMean.pdf'], "ContentType","vector","BackgroundColor","none")
 
 %% Run PCA
@@ -69,18 +71,20 @@ ylim([0,20])
 
 f = gcf;
 f.Units = "inches";
-f.Position = [2,2,1.2,1];
+f.Position = [2,2,          1.2,           1.5];
 exportgraphics(gcf,[figFolder,'Scree.pdf'],"ContentType","vector",BackgroundColor="none")
 
 %% Plot PC pattern (score)
-f = figure(123);clf
-hold on
+figure(123);clf;hold on
+yLim = [-15,15];
+ylim(yLim);
 
-plot(x_time, score(:,1),'LineWidth',1.5,'Color',[.8,0,.2,.3]);
-plot(x_time, score(:,2),'LineWidth',2,'Color',[0,0,1,1]);
+plot(x_time, score(:,1),'LineWidth',1.5,'Color',PC1_color);
+plot(x_time, score(:,2),'LineWidth',1.5,'Color',PC2_color);
 %plot(x_time, score(:,3),'LineWidth',1.5,'Color',[0,.8,.2,.3]);
 
-plot([0,120], [14,14], 'Color',[.5,.5,.5], 'LineWidth',2)
+% plot([0,120], [14,14], 'Color',[.5,.5,.5], 'LineWidth',2)
+rectangle(Position=[0,yLim(1),120,yLim(2)-yLim(1)], FaceColor=[0,0,0,injectBoxTransparency], EdgeColor='none')
 
 xlabel('Time (s)'); ylabel('Z-score');
 
@@ -88,24 +92,25 @@ hold on
 yline(0)
 %plotBpod(bpod)
 
-leg = legend({'PC1';'PC2'},'Location','best');
-legend('boxoff')
-leg.ItemTokenSize = [5,4];
+% leg = legend({'PC1';'PC2'},'Location','best');
+% legend('boxoff')
+% leg.ItemTokenSize = [5,4];
 xlim([x_time(1), x_time(end)])
 
+f = gcf;
 f.Units = "inches";
-f.Position = [2,2,3,2];
+f.Position = [2,2,    4,         1.8];
 exportgraphics(gcf,[figFolder,'pca_score.pdf'])
 
 %% PC2 loadings, split by group  (mountain plot)
 figure(123);clf
 [f,x] = ecdf(coeff(isControl,2));
 f(f>0.5) = 1 - f(f>0.5);
-plot(x,f,'LineWidth',1,'Color',controlColor)
+plot(x,f,'LineWidth',1.5,'Color',controlColor)
 hold on
 [f,x] = ecdf(coeff(isInject,2));
 f(f>0.5) = 1 - f(f>0.5);
-plot(x,f,'LineWidth',1,'Color',injectColor)
+plot(x,f,'LineWidth',1.5,'Color',injectColor)
 
 xline(0)
 xlabel('PC2 loadings')
@@ -121,7 +126,7 @@ ylim([0,.5])
 % text(-.1,.4,['p=',num2str(p,2)], 'FontSize',5)
 f = gcf;
 f.Units = "inches";
-f.Position = [2,2,1.2,1];
+f.Position = [2,2,          2.4,            1.5];
 exportgraphics(gcf,[figFolder,'pca_loading.pdf'])
 
 
@@ -149,6 +154,9 @@ sortedDist(round(length(sortedDist)*0.9));
 figure(123); clf
 hold on
 
+yLim = [0,250];
+ylim(yLim);
+rectangle(Position=[0,yLim(1),120,yLim(2)-yLim(1)], FaceColor=[0,0,0,injectBoxTransparency], EdgeColor='none')
 
 thisDist = 43;
 shadedErrorBar(diffusion.time, diffusion.conc_mean(thisDist,:), diffusion.conc_range(thisDist,:), ...
@@ -162,18 +170,17 @@ thisDist = 69;
 shadedErrorBar(diffusion.time, diffusion.conc_mean(thisDist,:), diffusion.conc_range(thisDist,:), ...
     'LineProps', {'r-','LineWidth',1});
 
-plot([0,120], [240,240], 'Color',[.5,.5,.5], 'LineWidth',2)
-% plot([120,120],ylim,'r--')
+
 xlabel('Time (s)')
 ylabel('Predicted [EtOH] (mg/dL)')
 xlim([-200,720])
 
-leg = legend('430 um', '530 um', '690 um');
-legend('boxoff')
-leg.ItemTokenSize = [5,4];
+% leg = legend('430 um', '530 um', '690 um');
+% legend('boxoff')
+% leg.ItemTokenSize = [5,4];
 f = gcf;
 f.Units = "inches";
-f.Position = [2,2,2,2];
+f.Position = [2,2,               2.5,            2];
 exportgraphics(gcf,[figFolder,'concentration_atDistances.pdf'],"ContentType","vector","BackgroundColor","none")
 
 %% plot histogram of cluster distances vs. peak concentration
@@ -249,7 +256,7 @@ xlim([0,165])
  rho = rho(identity);
 
 %% Corelation to firing (stacked bar) for paper
-figure(123); clf
+figure(123); clf; hold on; 
 stack = nan(3,2);
 stack(1,2) = sum(rho<0 & pval<.05 & isInject);
 stack(2,2) = sum(pval>.05 & isInject);
@@ -261,20 +268,19 @@ stack(2,1) = sum(pval>.05 & isControl);
 stack(3,1) = sum(rho>0 & pval<.05 & isControl);
 stack(:,1) = stack(:,1) / sum(stack(:,1));
 
-groupNames = ["Control","Inject"];
-x = categorical(groupNames);
-x = reordercats(x, groupNames);
-b = bar(x, stack', 'stacked', '');
-nCorrColor = 1 - [127,191,123]/255;
-b(1).FaceColor = nCorrColor;
+% groupNames = ["aCSF","aCSF+EtOH"];
+% x = categorical(groupNames);
+% x = reordercats(x, groupNames);
+b = bar([1,2], stack', 'stacked', '');
+b(1).FaceColor = negativeCorr_color;
 b(2).FaceColor = [.6,.6,.6];
-pCorrColor = 1 - [175,141,195]/255;
-b(3).FaceColor = pCorrColor;
+b(3).FaceColor = positiveCorr_color;
 %ylim([0,sum(control_stack)])
+% set(gca, "XTickLabel", [])
 
 
 
-% c = colororder;
+% c = colororder;z
 % textY = 2.7;
 % textX = stack(1,2)/2;
 % text(textX,textY, '-Corr','HorizontalAlignment','center','Color',c(1,:),'FontSize',8)
@@ -283,7 +289,6 @@ b(3).FaceColor = pCorrColor;
 % textX = stack(1,2) + stack(2,2) + stack(3,2)/2;
 % text(textX,textY, '+Corr','HorizontalAlignment','center','Color',c(3,:),'FontSize',8)
 
-%ylim([.25,3])
 
 ylabel('Proportion of neurons')
 
@@ -291,12 +296,9 @@ f = gcf;
 %hA = axes(f);
 
 box off
-% set(gca, 'XTick', [], 'XTickLabel', []);
-% set(hA, 'YTick', [], 'YTickLabel', []);
-% set(get(gca, 'XAxis'), 'Visible', 'off');
-% set(get(gca, 'YAxis'), 'Visible', 'off');
-% set(gca, "XTickLabel", [])
-xtickangle(45)
+set(gca, "XTickLabel", [])
+xlim([0.5,2.5])
+% xtickangle(45)
 % 
 % leg = legend('-','NS', '+','Location','eastoutside');
 % legend('boxoff')
@@ -304,27 +306,28 @@ xtickangle(45)
 
 
 f.Units = "inches";
-f.Position = [2,2,1.5,2.1];
+f.Position = [2,2,1.6,2.2];
 exportgraphics(gcf,[figFolder,'concentration_stackedBar.pdf'],"ContentType","vector","BackgroundColor","none")
 
 %% plot mean firing for high and low correlation clusters (Control)
+figure(123); clf; hold on
 
-figure(123); clf;
-hold on
+yLim = [-1.1,2.7];
+ylim(yLim);
+rectangle(Position=[0,yLim(1),120,yLim(2)-yLim(1)], FaceColor=[0,0,0,injectBoxTransparency], EdgeColor='none')
+
 y = spkZ(rho<0 & pval<.05 & isControl,:);
-addShadedLine(x_time, y, {'Color', nCorrColor, 'Linewidth', 1});
+addShadedLine(x_time, y, {'Color', negativeCorr_color, 'Linewidth', 1});
 
 y = spkZ(rho>0 & pval<.05 & isControl,:);
-addShadedLine(x_time, y, {'Color', pCorrColor, 'Linewidth', 1});
+addShadedLine(x_time, y, {'Color', positiveCorr_color, 'Linewidth', 1});
 
 xlim([x_time(1), x_time(end)])
 yline(0)
-ylim([-1,2.5])
 
-plot([0,120], [2.3,2.3], 'Color',[.5,.5,.5], 'LineWidth',2);
 % xlabel('Time (s)')
-set(gca, "XTick", [])
-ylabel(["Control","Z-score"])
+set(gca, "XTickLabels", [])
+ylabel("Z-score")
 % title('Control')
 % leg = legend('Control','Inject','Location','best');
 % legend('boxoff')
@@ -332,30 +335,34 @@ ylabel(["Control","Z-score"])
 
 f = gcf;
 f.Units = "inches";
-f.Position = [2,2,2.2,1];
-exportgraphics(gcf,[figFolder,'Control_corr.pdf'])
+f.Position = [2,2,            3,                 1.2];
+exportgraphics(gcf,[figFolder,'Control_corr.pdf'], "ContentType","vector","BackgroundColor","none")
+
 %% plot mean firing for high and low correlation clusters (Inject)
-figure(123); clf;
-hold on
+figure(123); clf; hold on
+
+yLim = [-1.5,2.3];
+ylim(yLim);
+rectangle(Position=[0,yLim(1),120,yLim(2)-yLim(1)], FaceColor=[0,0,0,injectBoxTransparency], EdgeColor='none')
+
 y = spkZ(rho<0 & pval<.05 & isInject,:);
-addShadedLine(x_time, y,{'Color', nCorrColor, 'Linewidth', 1});
+addShadedLine(x_time, y,{'Color', negativeCorr_color, 'Linewidth', 1});
 
 y = spkZ(rho>0 & pval<.05 & isInject,:);
-addShadedLine(x_time, y,{'Color', pCorrColor, 'Linewidth', 1});
+addShadedLine(x_time, y,{'Color', positiveCorr_color, 'Linewidth', 1});
 
 xlim([x_time(1), x_time(end)])
 yline(0)
-ylim([-1,2.5])
 xlabel('Time (s)')
-ylabel(["Inject","Z-score"])
+ylabel("Z-score")
 % title('Inject')
 % leg = legend('Control','Inject','Location','best');
 % legend('boxoff')
 % leg.ItemTokenSize = [5,4];
 
 f.Units = "inches";
-f.Position = [2,2,2.2,1.2];
-exportgraphics(gcf,[figFolder,'Inject_corr.pdf'])
+f.Position = [2,2,             3,               1.4];
+exportgraphics(gcf,[figFolder,'Inject_corr.pdf'], "ContentType","vector","BackgroundColor","none")
 %% Scatter plot correlation vs distance
 figure(7); clf
 
@@ -378,6 +385,7 @@ xlabel('Distance from injection (um)')
 
 %% Cross correlation
 [r,lag] = xcorr(conc(1,:), spkZ(1,:));
+lag = lag*binWidth;
 r = nan(size(conc,1), length(r));
 r_shuff = r;
 
@@ -394,13 +402,12 @@ end
 %% Plot mean cross correlation (split by type)
 figure(123); clf
 hold on
-x = lag*binWidth;
 
-addShadedLine(x, r_shuff(isControl,:), {'--', 'Color', (1-controlColor)*.3 + controlColor});
-addShadedLine(x, r_shuff(isInject,:), {'--', 'Color', (1-injectColor)*.3 + injectColor});
+addShadedLine(lag, r_shuff(isControl,:), {'--', 'Color', (1-controlColor)*.3 + controlColor});
+addShadedLine(lag, r_shuff(isInject,:), {'--', 'Color', (1-injectColor)*.3 + injectColor});
 
-addShadedLine(x, r(isControl,:), {'Color', controlColor});
-addShadedLine(x, r(isInject,:), {'Color', injectColor});
+addShadedLine(lag, r(isControl,:), {'Color', controlColor});
+addShadedLine(lag, r(isInject,:), {'Color', injectColor});
 
 yline(0)
 xline(0)
@@ -412,37 +419,70 @@ xline(0)
 %uistack(l, 'bottom');
 xlabel('Lag (s)')
 ylabel('Spiking correlation to [EtOH]')
-leg = legend('aCSF','aCSF + EtOH', 'Location', 'northwest');
-legend('boxoff')
-leg.ItemTokenSize = [5,4];
-xlim([-800,800])
+% leg = legend('aCSF','aCSF + EtOH', 'Location', 'northwest');
+% legend('boxoff')
+% leg.ItemTokenSize = [5,4];
+xlim([-500,700])
 
 f = gcf;
 f.Units = "inches";
-f.Position = [2,2,3.4,2.4];
+f.Position = [2,2,            3,             2.4];
 exportgraphics(gcf,[figFolder,'crossCorrelation.pdf'], "ContentType","vector","BackgroundColor","none")
-%% Mountain plot of p-Value for specific lag
-lagPoint = -60;
-%lagPoint = -360;
-[~,lagInd] = min(abs(lag-lagPoint/binWidth));
+%% Mountain plot of correlation for peak min lag
+[~, lagInd] = min(mean(r(isInject,:)));
 
-figure(9); clf
+figure(123); clf; hold on;
 [f,x] = ecdf(r(isControl,lagInd));
 f(f>0.5) = 1 - f(f>0.5);
-plot(x,f,'LineWidth',2,'Color','b')
+plot(x,f,'LineWidth',1.5,'Color',controlColor)
 hold on
 
 [f,x] = ecdf(r(isInject,lagInd));
 f(f>0.5) = 1 - f(f>0.5);
-plot(x,f,'LineWidth',2,'Color','r')
+plot(x,f,'LineWidth',1.5,'Color',injectColor)
 
-xlabel('Correlation (firing to ethanol concentration)')
-ylabel('Folded probability')
+xlabel('Correlation')
+ylabel('Probability')
 
-title(['Spike lag ', num2str(lagPoint), 's'])
+% title(['Spike lag ', num2str(lag(lagInd)), 's'])
+xline(0)
 
-plot([0,0],[0,.5], 'k--')
-legend('aCSF','aCSF + EtOH')
+xlim([-.5, 0.6])
+ylim([0,.5])
+box on
+
+f = gcf;
+f.Units = "inches";
+f.Position = [2,2,          1.6,            1.1];
+exportgraphics(gcf,[figFolder,'correlation_peakMinLag.pdf'], "ContentType","vector","BackgroundColor","none")
+
+%% Mountain plot of correlation for peak max lag
+[~, lagInd] = max(mean(r(isInject,:)));
+
+figure(123); clf; hold on;
+[f,x] = ecdf(r(isControl,lagInd));
+f(f>0.5) = 1 - f(f>0.5);
+plot(x,f,'LineWidth',1.5,'Color',controlColor)
+hold on
+
+[f,x] = ecdf(r(isInject,lagInd));
+f(f>0.5) = 1 - f(f>0.5);
+plot(x,f,'LineWidth',1.5,'Color',injectColor)
+
+xlabel('Correlation')
+ylabel('Probability')
+
+% title(['Spike lag ', num2str(lag(lagInd)), 's'])
+xline(0)
+
+xlim([-.5, 0.6])
+ylim([0,.5])
+box on
+
+f = gcf;
+f.Units = "inches";
+f.Position = [2,2,          1.6,            1.1];
+exportgraphics(gcf,[figFolder,'correlation_peakMaxLag.pdf'], "ContentType","vector","BackgroundColor","none")
 
 %% Scatter plot correlation vs distance for lag point
 figure(10); clf

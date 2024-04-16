@@ -11,7 +11,18 @@ isControl = contains(goodClusters.group,'control');
 isDrink = contains(goodClusters.group,'drink');
 isInject = contains(goodClusters.group,'inject');
 
-%% Group by N valves 
+%% Spikes around sipper valve - Group by N valve
+binWidth=0.1;
+binEdges = -1320:binWidth:1500;
+target = 'sipperStart';
+[tempCounts,  ~]  = binAroundTarget(goodClusters, target, binEdges);
+clusterSTD = std(tempCounts, 0 ,2);
+clusterMean = mean(tempCounts,2);
+
+binEdges = -2:binWidth:14;
+x_time = binEdges(1:end-1);
+spkCounts  = binAroundValve(goodClusters, binEdges);%,'smooth');
+
 valveBinning = 12;
 clumped = nan(size(spkCounts,1),size(spkCounts,2),size(spkCounts,3)/valveBinning);
 for i=1:size(spkCounts,3)/valveBinning
@@ -22,7 +33,10 @@ end
 
 spkZ_clumped = zscore(clumped,0,2);
 
-% Plot traces for each valve opening with clumped valves
+spkZ = (clumped-clusterMean) ./  clusterSTD;
+spkZ = spkZ - mean(spkZ(:, x_time<0 & x_time>=-1),2);
+
+%% Plot traces for each valve opening with clumped valves
 controlValves = spkZ_clumped(isControl, :, :);
 controlValves = squeeze(mean(controlValves,1))';
 
@@ -71,7 +85,7 @@ xlabel('Time (0.1s bins)')
 
 %% Pull out peak Inh
 %inhWindow = val2Ind(x_time, [1.6,3.2]); %time where zscore is <-0.5 for any trace in Fig 4
-inhWindow = val2Ind(x_time, [1.25,3.55]); %time below 0
+inhWindow = val2Ind(x_time, [1.5,3.4]); %time below 0
 inh = squeeze(mean(spkZ_clumped(:,inhWindow(1):inhWindow(2),:), 2));
 
 
@@ -152,3 +166,12 @@ xlabel('Time (s)')
 % f.Units = "inches";
 % f.Position = [2,2,3.3,2];
 % exportgraphics(gcf,[figFolder,'clumpedMean.pdf'],"ContentType","vector","BackgroundColor","none")
+
+
+%%
+function vals = val2Ind(x, vals)
+    for i=1:length(vals)
+        [~,minInd]=min(abs(x-vals(i)));
+        vals(i)=minInd;
+    end
+end
