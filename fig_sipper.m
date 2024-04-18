@@ -83,7 +83,7 @@ rectangle(Position=[0,yLim(1),900,yLim(2)-yLim(1)], FaceColor=[0,0,0,injectBoxTr
 text(450,1,"Sipper active","HorizontalAlignment","center","VerticalAlignment","top")
 
 xlabel('Time (s)')
-ylabel('Z-score')
+ylabel('Firing (Z-score)')
 
 % leg = legend('Control','EtOH consumed','EtOH injected','Location','northeast');
 % legend('boxoff')
@@ -120,7 +120,7 @@ addShadedLine(x_time, spkZ(isInject,:), {'Color', injectColor});
 addShadedLine(x_time, spkZ(isDrink,:), {'Color', drinkColor});
 yline(0)
 
-ylabel('Z-score')
+ylabel('Firing (Z-score)')
 % xlabel('Time (s)')
 xlabel(' ')
 set(gca, "XTickLabel", [])
@@ -135,8 +135,14 @@ f.Units = "inches";
 f.Position = [2,2,           4.2,               1.8];
 exportgraphics(gcf,[figFolder,'valveMean.pdf'],"ContentType","vector","BackgroundColor","none")
 %% Run PCA
-[coeff,score,latent,~,explained] = pca(spkZ'); % <-- Data are (time(bins) x neurons)
+weights = nan(size(spkZ,1),1);
+weights(isControl) = 1/3 / sum(isControl);
+weights(isInject) = 1/3 / sum(isInject);
+weights(isDrink) = 1/3 / sum(isDrink);
 
+% [coeff,score,latent,~,explained] = pca(spkZ'); % <-- Data are (time(bins) x neurons)
+[coeff,score,latent,~,explained] = pca(spkZ', "VariableWeights",weights); % <-- Data are (time(bins) x neurons)
+coeff = diag(sqrt(weights))*coeff;
 %% Plot explained variance or Scree
 figure(123);clf
 % plot(latent,'.-')
@@ -154,7 +160,8 @@ exportgraphics(gcf,[figFolder,'pca_scree.pdf'],"ContentType","vector","Backgroun
 figure(123); clf
 hold on
 
-ylim([-3,8])
+% ylim([-3,8])
+ylim([-.17,.38])
 plot([0,0],ylim,'--','Color',[.5,.5,.5])
 plot([10.1,10.1],ylim,'--','Color',[.5,.5,.5])
 
@@ -164,13 +171,11 @@ plot(x_time, score(:,2),'LineWidth',1,'Color',PC2_color);
 %plot(x_time, score(:,4),'LineWidth',2,'Color',[.5,.5,.5,.5]);
 
 xlabel('Time (s)');
-ylabel('Z-score');
+ylabel('Firing (arbitrary units)');
 xlim([x_time(1), x_time(end)])
 
 hold on
 yline(0)
-
-
 
 % leg = legend({'PC1';'PC2'},'Location','north');
 % legend('boxoff')
@@ -204,10 +209,10 @@ xlabel(['PC', num2str(interestingPC), ' loadings'])
 xlim([-.05,0.25])
 ylabel('Probability')
 
-[h,p] = kstest2(coeff(isControl,2),coeff(isDrink,2) );
+[h,p] = kstest2(coeff(isControl,interestingPC),coeff(isDrink,interestingPC) );
 % text(-.14,.4,['CvD p=',num2str(p*2,2)], 'FontSize',5)
 
-[h,p] = kstest2(coeff(isControl,2),coeff(isInject,2) );
+[h,p] = kstest2(coeff(isControl,interestingPC),coeff(isInject,interestingPC) );
 % text(-.14,.35,['CvI p=',num2str(p*2,2)], 'FontSize',5)
 
 % pc1_Thresh = -.05;
@@ -222,8 +227,6 @@ f = gcf;
 f.Units = "inches";
 f.Position = [2,2,2,1.2];
 exportgraphics(gcf,[figFolder,'pca_PC1Mountain.pdf'])
-
-
 %% PC2 loadings, split by group  (mountain plot)
 figure(123); clf; hold on;
 interestingPC = 2;
@@ -246,11 +249,11 @@ xlabel(['PC', num2str(interestingPC), ' loadings'])
 xlim([-.1,.2])
 % ylabel('Folded probability')
 
-[h,p] = kstest2(coeff(isControl,2),coeff(isDrink,2) );
+[h,p] = kstest2(coeff(isControl,interestingPC),coeff(isDrink,interestingPC) );
 % text(-.14,.4,['CvD p=',num2str(p*2,2)], 'FontSize',5)
 set(gca,'Yticklabel',[]) 
 
-[h,p] = kstest2(coeff(isControl,2),coeff(isInject,2) );
+[h,p] = kstest2(coeff(isControl,interestingPC),coeff(isInject,interestingPC) );
 % text(-.14,.35,['CvI p=',num2str(p*2,2)], 'FontSize',5)
 
 % pc1_Thresh = -.05;

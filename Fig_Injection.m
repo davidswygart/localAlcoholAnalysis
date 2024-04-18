@@ -44,7 +44,7 @@ addShadedLine(x_time,spkZ(isInject,:),{'Color', injectColor});
 yline(0)
 
 xlabel('Time (s)')
-ylabel('Z-score')
+ylabel('Firing (Z-score)')
 
 % leg = legend('aCSF','aCSF + EtOH','Location','best');
 % legend('boxoff')
@@ -56,37 +56,47 @@ f.Position = [2,2,          4,           1.8];
 exportgraphics(gcf,[figFolder,'grandMean.pdf'], "ContentType","vector","BackgroundColor","none")
 
 %% Run PCA
-[coeff,score,latent,~,explained] = pca(spkZ'); % <-- Data are (time(bins) x neurons)
+weights = nan(size(spkZ,1),1);
+weights(isControl) = 0.5 / sum(isControl);
+weights(isInject) = 0.5 / sum(isInject);
 
+% [coeff,score,latent,~,explained] = pca(spkZ'); % <-- Data are (time(bins) x neurons)
+[coeff,score,latent,~,explained] = pca(spkZ', "VariableWeights",weights); % <-- Data are (time(bins) x neurons)
+coeff = diag(sqrt(weights))*coeff;
 %% Plot explained variance or Scree
 figure(123);clf
 % plot(latent,'.-')
 ylabel('Eigenvalue')
 bar(explained,'k');  
-% bar(cumsum(explained),'k');
-ylabel(["Explained", "variance (%)"])
+% ylabel(["Explained", "variance (%)"])
+ylabel("Explained variance (%)")
 xlabel('PC')
-xlim([.50,4.5])
+xlim([.50,3.5])
 ylim([0,20])
 
+figScale = 4;
+a = gca;
+a.FontSize = a.FontSize*figScale;
+a.LineWidth = a.LineWidth*figScale;
 f = gcf;
 f.Units = "inches";
-f.Position = [2,2,          1.2,           1.5];
+f.OuterPosition = [2,2,          .75*figScale,           1.5*figScale];
 exportgraphics(gcf,[figFolder,'Scree.pdf'],"ContentType","vector",BackgroundColor="none")
 
 %% Plot PC pattern (score)
 figure(123);clf;hold on
-yLim = [-15,15];
+% yLim = [-15,15];
+yLim = [-.8,.8];
 ylim(yLim);
 
 plot(x_time, score(:,1),'LineWidth',1.5,'Color',PC1_color);
 plot(x_time, score(:,2),'LineWidth',1.5,'Color',PC2_color);
-%plot(x_time, score(:,3),'LineWidth',1.5,'Color',[0,.8,.2,.3]);
+% plot(x_time, score(:,3),'LineWidth',1.5,'Color',[0,.8,.2,.3]);
 
 % plot([0,120], [14,14], 'Color',[.5,.5,.5], 'LineWidth',2)
 rectangle(Position=[0,yLim(1),120,yLim(2)-yLim(1)], FaceColor=[0,0,0,injectBoxTransparency], EdgeColor='none')
 
-xlabel('Time (s)'); ylabel('Z-score');
+xlabel('Time (s)'); ylabel('Firing (arbitrary units)');
 
 hold on
 yline(0)
@@ -100,36 +110,64 @@ xlim([x_time(1), x_time(end)])
 f = gcf;
 f.Units = "inches";
 f.Position = [2,2,    4,         1.8];
-exportgraphics(gcf,[figFolder,'pca_score.pdf'])
+exportgraphics(gcf,[figFolder,'pca_score.pdf'],"ContentType","vector",BackgroundColor="none")
 
-%% PC2 loadings, split by group  (mountain plot)
-figure(123);clf
-[f,x] = ecdf(coeff(isControl,2));
+%% PC1 loadings, split by group  (mountain plot)
+figure(123);clf; hold on;
+interestingPC = 1;
+
+[f,x] = ecdf(coeff(isControl,interestingPC));
 f(f>0.5) = 1 - f(f>0.5);
 plot(x,f,'LineWidth',1.5,'Color',controlColor)
-hold on
-[f,x] = ecdf(coeff(isInject,2));
+
+[f,x] = ecdf(coeff(isInject,interestingPC));
 f(f>0.5) = 1 - f(f>0.5);
 plot(x,f,'LineWidth',1.5,'Color',injectColor)
 
 xline(0)
-xlabel('PC2 loadings')
+xlabel(['PC', num2str(interestingPC), ' loadings'])
 ylabel('Probability')
 % leg = legend("Control", "Inject","Location","northwest");
 % legend('boxoff')
 % leg.ItemTokenSize = [5,4];
 
-xlim([-.12, 0.12])
+xlim([-.1, 0.2])
 ylim([0,.5])
+box on
 
-[h,p] = kstest2(coeff(isControl,2),coeff(isInject,2) );
+[h,p] = kstest2(coeff(isControl,interestingPC),coeff(isInject,interestingPC) );
 % text(-.1,.4,['p=',num2str(p,2)], 'FontSize',5)
 f = gcf;
 f.Units = "inches";
-f.Position = [2,2,          2.4,            1.5];
-exportgraphics(gcf,[figFolder,'pca_loading.pdf'])
+f.Position = [2,2,          1.9,            1.5];
+exportgraphics(gcf,[figFolder,'pca_PC1_loading.pdf'],"ContentType","vector",BackgroundColor="none")
+%% PC2 loadings, split by group  (mountain plot)
+figure(123);clf; hold on;
+interestingPC = 2;
 
+[f,x] = ecdf(coeff(isControl,interestingPC));
+f(f>0.5) = 1 - f(f>0.5);
+plot(x,f,'LineWidth',1.5,'Color',controlColor)
 
+[f,x] = ecdf(coeff(isInject,interestingPC));
+f(f>0.5) = 1 - f(f>0.5);
+plot(x,f,'LineWidth',1.5,'Color',injectColor)
+
+xline(0)
+xlabel(['PC', num2str(interestingPC), ' loadings'])
+ylabel('Probability')
+% set(gca,"YTickLabel",['  '])
+
+xlim([-.1, 0.17])
+ylim([0,.5])
+box on
+
+[h,p] = kstest2(coeff(isControl,interestingPC),coeff(isInject,interestingPC) );
+% text(-.1,.4,['p=',num2str(p,2)], 'FontSize',5)
+f = gcf;
+f.Units = "inches";
+f.Position = [2,2,         1.9,            1.5];
+exportgraphics(gcf,[figFolder,'pca_PC2_loading.pdf'],"ContentType","vector",BackgroundColor="none")
 
 %% Combine high and low ek diffusion estimates
 
@@ -238,7 +276,7 @@ y = spkZ(isInject,:);
 scatter(x(:),y(:),5,'filled','MarkerFaceAlpha',.2,'MarkerEdgeAlpha',0)
 
 xlabel('Concentration (mg/dL)')
-ylabel('Spiking (Z-score)')
+ylabel('Firing (Z-score)')
 
 [p,S] = polyfit(x(:),y(:),2);
 xp = 0:2:160;
@@ -261,11 +299,15 @@ stack = nan(3,2);
 stack(1,2) = sum(rho<0 & pval<.05 & isInject);
 stack(2,2) = sum(pval>.05 & isInject);
 stack(3,2) = sum(rho>0 & pval<.05 & isInject);
-stack(:,2) = stack(:,2) / sum(stack(:,2));
+
 
 stack(1,1) = sum(rho<0 & pval<.05 & isControl);
 stack(2,1) = sum(pval>.05 & isControl);
 stack(3,1) = sum(rho>0 & pval<.05 & isControl);
+
+p = twoProportionZtest(stack(:,1), stack(:,2));
+
+stack(:,2) = stack(:,2) / sum(stack(:,2));
 stack(:,1) = stack(:,1) / sum(stack(:,1));
 
 % groupNames = ["aCSF","aCSF+EtOH"];
@@ -327,7 +369,7 @@ yline(0)
 
 % xlabel('Time (s)')
 set(gca, "XTickLabels", [])
-ylabel("Z-score")
+ylabel("Firing (Z-score)")
 % title('Control')
 % leg = legend('Control','Inject','Location','best');
 % legend('boxoff')
@@ -354,7 +396,7 @@ addShadedLine(x_time, y,{'Color', positiveCorr_color, 'Linewidth', 1});
 xlim([x_time(1), x_time(end)])
 yline(0)
 xlabel('Time (s)')
-ylabel("Z-score")
+ylabel("Firing (Z-score)")
 % title('Inject')
 % leg = legend('Control','Inject','Location','best');
 % legend('boxoff')
