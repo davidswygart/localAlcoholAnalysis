@@ -37,7 +37,7 @@ figure(123); clf; hold on;
 yLim = [-.75,.75];
 ylim(yLim);
 xlim([x_time(1),x_time(end)]);
-rectangle(Position=[0,yLim(1),120,yLim(2)-yLim(1)], FaceColor=[0,0,0,injectBoxTransparency], EdgeColor='none')
+r = rectangle(Position=[0,yLim(1),120,yLim(2)-yLim(1)], FaceColor=[0,0,0], EdgeColor='none', FaceAlpha=injectBoxTransparency)
 % text(60,0.8,'Injection','HorizontalAlignment','center','VerticalAlignment','bottom')
 addShadedLine(x_time,spkZ(isControl,:),{'Color', controlColor});
 addShadedLine(x_time,spkZ(isInject,:),{'Color', injectColor});
@@ -94,7 +94,7 @@ plot(x_time, score(:,2),'LineWidth',1.5,'Color',PC2_color);
 % plot(x_time, score(:,3),'LineWidth',1.5,'Color',[0,.8,.2,.3]);
 
 % plot([0,120], [14,14], 'Color',[.5,.5,.5], 'LineWidth',2)
-rectangle(Position=[0,yLim(1),120,yLim(2)-yLim(1)], FaceColor=[0,0,0,injectBoxTransparency], EdgeColor='none')
+rectangle(Position=[0,yLim(1),120,yLim(2)-yLim(1)], FaceColor=[0,0,0], EdgeColor='none',FaceAlpha=injectBoxTransparency)
 
 xlabel('Time (s)'); ylabel('Firing (arbitrary units)');
 
@@ -194,7 +194,7 @@ hold on
 
 yLim = [0,250];
 ylim(yLim);
-rectangle(Position=[0,yLim(1),120,yLim(2)-yLim(1)], FaceColor=[0,0,0,injectBoxTransparency], EdgeColor='none')
+rectangle(Position=[0,yLim(1),120,yLim(2)-yLim(1)], FaceColor=[0,0,0], EdgeColor='none',FaceAlpha=injectBoxTransparency)
 
 thisDist = 43;
 shadedErrorBar(diffusion.time, diffusion.conc_mean(thisDist,:), diffusion.conc_range(thisDist,:), ...
@@ -253,7 +253,7 @@ ylabel('Number of neurons', 'Rotation',-90)
 
 % Set X axis
 xlim([280,870])
-xlabel('Distance from injection (um)')
+xlabel('Distance from injection (µm)')
 
 
 f = gcf;
@@ -356,7 +356,7 @@ figure(123); clf; hold on
 
 yLim = [-1.1,2.7];
 ylim(yLim);
-rectangle(Position=[0,yLim(1),120,yLim(2)-yLim(1)], FaceColor=[0,0,0,injectBoxTransparency], EdgeColor='none')
+rectangle(Position=[0,yLim(1),120,yLim(2)-yLim(1)], FaceColor=[0,0,0], EdgeColor='none',FaceAlpha=injectBoxTransparency)
 
 y = spkZ(rho<0 & pval<.05 & isControl,:);
 addShadedLine(x_time, y, {'Color', negativeCorr_color, 'Linewidth', 1});
@@ -385,7 +385,7 @@ figure(123); clf; hold on
 
 yLim = [-1.5,2.3];
 ylim(yLim);
-rectangle(Position=[0,yLim(1),120,yLim(2)-yLim(1)], FaceColor=[0,0,0,injectBoxTransparency], EdgeColor='none')
+rectangle(Position=[0,yLim(1),120,yLim(2)-yLim(1)], FaceColor=[0,0,0], EdgeColor='none',FaceAlpha=injectBoxTransparency)
 
 y = spkZ(rho<0 & pval<.05 & isInject,:);
 addShadedLine(x_time, y,{'Color', negativeCorr_color, 'Linewidth', 1});
@@ -489,7 +489,7 @@ ylabel('Probability')
 % title(['Spike lag ', num2str(lag(lagInd)), 's'])
 xline(0)
 
-xlim([-.5, 0.6])
+xlim([-.6, 0.5])
 ylim([0,.5])
 box on
 
@@ -502,10 +502,11 @@ exportgraphics(gcf,[figFolder,'correlation_peakMinLag.pdf'], "ContentType","vect
 [~, lagInd] = max(mean(r(isInject,:)));
 
 figure(123); clf; hold on;
+xline(0)
+
 [f,x] = ecdf(r(isControl,lagInd));
 f(f>0.5) = 1 - f(f>0.5);
 plot(x,f,'LineWidth',1.5,'Color',controlColor)
-hold on
 
 [f,x] = ecdf(r(isInject,lagInd));
 f(f>0.5) = 1 - f(f>0.5);
@@ -514,10 +515,7 @@ plot(x,f,'LineWidth',1.5,'Color',injectColor)
 xlabel('Correlation')
 ylabel('Probability')
 
-% title(['Spike lag ', num2str(lag(lagInd)), 's'])
-xline(0)
-
-xlim([-.5, 0.6])
+xlim([-.4, 0.7])
 ylim([0,.5])
 box on
 

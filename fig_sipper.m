@@ -79,7 +79,7 @@ addShadedLine(x_fullTime,spkZ_fullTime(isDrink,:),{'Color', drinkColor});
 yline(0)
 
 % plot([0,900], [1,1], 'Color',[.5,.5,.5], 'LineWidth',2)
-rectangle(Position=[0,yLim(1),900,yLim(2)-yLim(1)], FaceColor=[0,0,0,injectBoxTransparency], EdgeColor='none')
+rectangle(Position=[0,yLim(1),900,yLim(2)-yLim(1)], FaceColor=[0,0,0], EdgeColor='none', FaceAlpha=injectBoxTransparency)
 text(450,1,"Sipper active","HorizontalAlignment","center","VerticalAlignment","top")
 
 xlabel('Time (s)')
@@ -246,7 +246,7 @@ f(f>0.5) = 1 - f(f>0.5);
 plot(x,f,'LineWidth',1.5,'Color',drinkColor)
 
 xlabel(['PC', num2str(interestingPC), ' loadings'])
-xlim([-.1,.2])
+xlim([-.12,.22])
 % ylabel('Folded probability')
 
 [h,p] = kstest2(coeff(isControl,interestingPC),coeff(isDrink,interestingPC) );
