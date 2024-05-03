@@ -1,5 +1,5 @@
 %%
-figFolder = 'C:\Users\david\OneDrive - Indiana University\localAlcohol\Figures\1_Injection\matlabExports\';
+figFolder = 'C:\Users\david\Indiana University\Bryant, Kathleen - Acute Ethanol\Head-fixed mouse figures\1_Injection\linkedImages\';
 % figFolder = 'C:\Users\dis006\OneDrive - Indiana University\localAlcohol\Figures\1_Injection\matlabExports\';
 d_lowEk = load("diffusion_ek0p8.mat");
 d_highEk = load("diffusion_ek2.mat");
@@ -55,6 +55,20 @@ f.Units = "inches";
 f.Position = [2,2,          4,           1.8];
 exportgraphics(gcf,[figFolder,'grandMean.pdf'], "ContentType","vector","BackgroundColor","none")
 
+%% save for R
+saveCsvForR_repeatedMeasuresMixedModel( ...
+    {spkZ(isControl,:), spkZ(isInject,:)}, ...
+    {"control","inject"}, ...
+    'injectFiring.csv')
+
+
+pVals = nan(size(spkZ,2),1);
+for i=1:size(spkZ,2)
+    [~,p]=ttest2(spkZ(isControl,i), spkZ(isInject,i),'Vartype','unequal');
+    pVals(i) = p;
+end
+h = fdr_bh(pVals, 0.05, 'dep');
+scatter(x_time(h), zeros(sum(h),1), "*")
 %% Run PCA
 weights = nan(size(spkZ,1),1);
 weights(isControl) = 0.5 / sum(isControl);
