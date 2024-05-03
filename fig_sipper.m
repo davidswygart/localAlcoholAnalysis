@@ -1,4 +1,4 @@
-figFolder = 'C:\Users\david\OneDrive - Indiana University\localAlcohol\Figures\2_Sipper\matlabExports\';
+figFolder = 'C:\Users\david\Indiana University\Bryant, Kathleen - Acute Ethanol\Head-fixed mouse figures\2_Sipper\linkedImages\';
 % figFolder = 'C:\Users\dis006\OneDrive - Indiana University\localAlcohol\Figures\2_Sipper\matlabExports\';
 load("goodClusters.mat")
 load("group.mat")
@@ -50,6 +50,9 @@ f.Units = "inches";
 f.Position = [2,2,           1.2,                1.7];
 exportgraphics(gcf,[figFolder,'volumeConsumed.pdf'],"BackgroundColor","none","ContentType","vector")
 
+%%
+[~,pInjected] = ttest2(controlConsumed,injectedConsumed,'Vartype','unequal')
+[~,pDrink] = ttest2(controlConsumed,drinkConsumed,'Vartype','unequal')
 
 %% Bin spikes around drinking  Full time;
 binWidth=10;
