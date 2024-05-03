@@ -1,7 +1,7 @@
 library(ez)
 
 setwd("C:/Users/david/OneDrive - Indiana University/localAlcohol/ephysData")
-data<-read.delim("effectOfInject.csv", header = TRUE, sep=",")
+data<-read.delim("injectFiring.csv", header = TRUE, sep=",")
 
 #using ezAnova
 #SomevsNone<-c(1, 1, -2)
@@ -13,11 +13,18 @@ data<-read.delim("effectOfInject.csv", header = TRUE, sep=",")
 options(digits = 3)
 model<-ezANOVA(
   data = data,
-  dv = .(spk),
-  wid = .(clusterID),
-  between = .(treatment),
-  within = .(bin),
+  wid = .(clusterID), # within group ID
+  within = .(bin), # within group predictor variable
+  between = .(treatment), # between group predictor variable
+  dv = .(spk), # dependent variable
   type = 3,
-  detailed = TRUE
+  detailed = FALSE
   )
 model
+
+
+#ezDesign(
+#  data = data,
+#  x = .(treatment),
+#  y = .(recordingID),
+#)
