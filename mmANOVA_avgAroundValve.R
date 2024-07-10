@@ -15,7 +15,7 @@ model<-ezANOVA(
   between = .(treatment),
   within = .(bin),
   type = 3,
-  detailed = TRUE
+  detailed = FALSE
   )
 model
 

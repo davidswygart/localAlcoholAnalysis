@@ -54,6 +54,9 @@ exportgraphics(gcf,[figFolder,'volumeConsumed.pdf'],"BackgroundColor","none","Co
 [~,pInjected] = ttest2(controlConsumed,injectedConsumed,'Vartype','unequal')
 [~,pDrink] = ttest2(controlConsumed,drinkConsumed,'Vartype','unequal')
 
+vals = [controlConsumed; injectedConsumed; drinkConsumed];
+group = [zeros(length(controlConsumed),1); ones(length(injectedConsumed),1); 1+ones(length(drinkConsumed),1)];
+a = anova1(vals,group)
 %% Bin spikes around drinking  Full time;
 binWidth=10;
 target = 'sipperStart';
@@ -96,7 +99,22 @@ f = gcf;
 f.Units = "inches";
 f.Position = [2,2,2.8,1.8];
 exportgraphics(gcf,[figFolder,'grandMean.pdf'], "ContentType","vector","BackgroundColor","none")
+%% save data for R anova
+% saveCsvForR_repeatedMeasuresMixedModel( ...
+%     {spkZ_fullTime(isControl,:), spkZ_fullTime(isInject,:), spkZ_fullTime(isDrink,:)}, ...
+%     {"control","inject","drink"}, ...
+%     'drinkFiring.csv')
 
+pVals = nan(length(x_fullTime),2);
+for i=1:length(x_fullTime)
+    [~,p]=ttest2(spkZ_fullTime(isControl,i), spkZ_fullTime(isInject,i),'Vartype','unequal');
+    pVals(i,1) = p;
+    [~,p]=ttest2(spkZ_fullTime(isControl,i), spkZ_fullTime(isDrink,i),'Vartype','unequal');
+    pVals(i,2) = p;
+end
+h = fdr_bh(pVals, 0.05, 'dep');
+scatter(x_fullTime(h(:,1)), zeros(sum(h(:,1)),1), "*", 'MarkerEdgeColor',injectColor)
+scatter(x_fullTime(h(:,2)), zeros(sum(h(:,2)),1), "*", 'MarkerEdgeColor',drinkColor)
 %% Spikes around sipper valve
 binWidth=0.1;
 binEdges = -1320:binWidth:1500;
@@ -137,6 +155,22 @@ f = gcf;
 f.Units = "inches";
 f.Position = [2,2,           4.2,               1.8];
 exportgraphics(gcf,[figFolder,'valveMean.pdf'],"ContentType","vector","BackgroundColor","none")
+%% save data for R anova
+saveCsvForR_repeatedMeasuresMixedModel( ...
+    {spkZ(isControl,:), spkZ(isInject,:), spkZ(isDrink,:)}, ...
+    {"control","inject","drink"}, ...
+    'averageAroundValve.csv')
+
+pVals = nan(length(x_time),2);
+for i=1:length(x_time)
+    [~,p]=ttest2(spkZ(isControl,i), spkZ(isInject,i),'Vartype','unequal');
+    pVals(i,1) = p;
+    [~,p]=ttest2(spkZ(isControl,i), spkZ(isDrink,i),'Vartype','unequal');
+    pVals(i,2) = p;
+end
+h = fdr_bh(pVals, 0.05, 'dep');
+scatter(x_time(h(:,1)), zeros(sum(h(:,1)),1), "*", 'MarkerEdgeColor',injectColor)
+scatter(x_time(h(:,2)), zeros(sum(h(:,2)),1), "*", 'MarkerEdgeColor',drinkColor)
 %% Run PCA
 weights = nan(size(spkZ,1),1);
 weights(isControl) = 1/3 / sum(isControl);
@@ -230,6 +264,10 @@ f = gcf;
 f.Units = "inches";
 f.Position = [2,2,2,1.2];
 exportgraphics(gcf,[figFolder,'pca_PC1Mountain.pdf'])
+
+median(coeff(isControl,interestingPC))
+median(coeff(isInject,interestingPC))
+median(coeff(isDrink,interestingPC))
 %% PC2 loadings, split by group  (mountain plot)
 figure(123); clf; hold on;
 interestingPC = 2;

@@ -512,6 +512,8 @@ f.Units = "inches";
 f.Position = [2,2,          1.6,            1.1];
 exportgraphics(gcf,[figFolder,'correlation_peakMinLag.pdf'], "ContentType","vector","BackgroundColor","none")
 
+
+[~,pval] = ttest2(r(isControl,lagInd), r(isInject,lagInd), "Vartype","unequal")
 %% Mountain plot of correlation for peak max lag
 [~, lagInd] = max(mean(r(isInject,:)));
 
@@ -538,6 +540,7 @@ f.Units = "inches";
 f.Position = [2,2,          1.6,            1.1];
 exportgraphics(gcf,[figFolder,'correlation_peakMaxLag.pdf'], "ContentType","vector","BackgroundColor","none")
 
+[~,pval] = ttest2(r(isControl,lagInd), r(isInject,lagInd), "Vartype","unequal")
 %% Scatter plot correlation vs distance for lag point
 figure(10); clf
 
