@@ -132,7 +132,7 @@ spkZ = spkZ - mean(spkZ(:, x_time<0 & x_time>=-1),2);
 %% Spikes around sipper valve - mean
 figure(123); clf; hold on
 
-ylim([-.15,.35])
+ylim([-.17,.35])
 plot([0,0],ylim,'--','Color',[.5,.5,.5])
 plot([10.1,10.1],ylim,'--','Color',[.5,.5,.5])
 
@@ -151,16 +151,7 @@ xlim([x_time(1), x_time(end)])
 % legend('boxoff')
 % leg.ItemTokenSize = [5,4];
 
-f = gcf;
-f.Units = "inches";
-f.Position = [2,2,           4.2,               1.8];
-exportgraphics(gcf,[figFolder,'valveMean.pdf'],"ContentType","vector","BackgroundColor","none")
-%% save data for R anova
-saveCsvForR_repeatedMeasuresMixedModel( ...
-    {spkZ(isControl,:), spkZ(isInject,:), spkZ(isDrink,:)}, ...
-    {"control","inject","drink"}, ...
-    'averageAroundValve.csv')
-
+% Run posthoc stats
 pVals = nan(length(x_time),2);
 for i=1:length(x_time)
     [~,p]=ttest2(spkZ(isControl,i), spkZ(isInject,i),'Vartype','unequal');
@@ -169,8 +160,35 @@ for i=1:length(x_time)
     pVals(i,2) = p;
 end
 h = fdr_bh(pVals, 0.05, 'dep');
-scatter(x_time(h(:,1)), zeros(sum(h(:,1)),1), "*", 'MarkerEdgeColor',injectColor)
-scatter(x_time(h(:,2)), zeros(sum(h(:,2)),1), "*", 'MarkerEdgeColor',drinkColor)
+% scatter(x_time(h(:,1)), -.11*ones(sum(h(:,1)),1), "*", 'MarkerEdgeColor',injectColor)
+% scatter(x_time(h(:,2)), -.12*ones(sum(h(:,2)),1), "*", 'MarkerEdgeColor',drinkColor)
+
+injectY = -.13;
+sigBinInds = find(h(:,1));
+for i = 1: length(sigBinInds)
+    x = [x_time(sigBinInds(i)),  x_time(sigBinInds(i)+1)];
+    y = [injectY, injectY];
+    plot(x,y, 'Color', injectColor,'LineWidth',2)
+end
+
+drinkY = -.14;
+sigBinInds = find(h(:,2));
+for i = 1: length(sigBinInds)
+    x = [x_time(sigBinInds(i)),  x_time(sigBinInds(i)+1)];
+    y = [drinkY, drinkY];
+    plot(x,y, 'Color', drinkColor,'LineWidth',2)
+end
+
+f = gcf;
+f.Units = "inches";
+f.Position = [2,2,           4.2,               1.8];
+exportgraphics(gcf,[figFolder,'valveMean.pdf'],"ContentType","vector","BackgroundColor","none")
+
+%% save data for R anova
+saveCsvForR_repeatedMeasuresMixedModel( ...
+    {spkZ(isControl,:), spkZ(isInject,:), spkZ(isDrink,:)}, ...
+    {"control","inject","drink"}, ...
+    'averageAroundValve.csv')
 %% Run PCA
 weights = nan(size(spkZ,1),1);
 weights(isControl) = 1/3 / sum(isControl);
@@ -246,11 +264,11 @@ xlabel(['PC', num2str(interestingPC), ' loadings'])
 xlim([-.05,0.25])
 ylabel('Probability')
 
-[h,p] = kstest2(coeff(isControl,interestingPC),coeff(isDrink,interestingPC) );
-% text(-.14,.4,['CvD p=',num2str(p*2,2)], 'FontSize',5)
-
-[h,p] = kstest2(coeff(isControl,interestingPC),coeff(isInject,interestingPC) );
+[h,p,ks2stat] = kstest2(coeff(isControl,interestingPC),coeff(isInject,interestingPC) );
 % text(-.14,.35,['CvI p=',num2str(p*2,2)], 'FontSize',5)
+
+[h,p,ks2stat] = kstest2(coeff(isControl,interestingPC),coeff(isDrink,interestingPC) );
+% text(-.14,.4,['CvD p=',num2str(p*2,2)], 'FontSize',5)
 
 % pc1_Thresh = -.05;
 % plot([pc1_Thresh,pc1_Thresh], [0,.5], '-.k')
@@ -290,12 +308,14 @@ xlabel(['PC', num2str(interestingPC), ' loadings'])
 xlim([-.12,.22])
 % ylabel('Folded probability')
 
-[h,p] = kstest2(coeff(isControl,interestingPC),coeff(isDrink,interestingPC) );
+
+[h,p,ks2stat] = kstest2(coeff(isControl,interestingPC),coeff(isInject,interestingPC) );
+% text(-.14,.35,['CvI p=',num2str(p*2,2)], 'FontSize',5)
+
+[h,p,ks2stat] = kstest2(coeff(isControl,interestingPC),coeff(isDrink,interestingPC) );
 % text(-.14,.4,['CvD p=',num2str(p*2,2)], 'FontSize',5)
 set(gca,'Yticklabel',[]) 
 
-[h,p] = kstest2(coeff(isControl,interestingPC),coeff(isInject,interestingPC) );
-% text(-.14,.35,['CvI p=',num2str(p*2,2)], 'FontSize',5)
 
 % pc1_Thresh = -.05;
 % plot([pc1_Thresh,pc1_Thresh], [0,.5], '-.k')
