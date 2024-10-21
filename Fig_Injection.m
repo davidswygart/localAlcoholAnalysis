@@ -440,44 +440,37 @@ ylabel('Correlation: spiking vs concentration')
 xlabel('Distance from injection (um)')
 
 %% Cross correlation
-[r,lag] = xcorr(conc(1,:), spkZ(1,:));
+[r_temp,lag] = xcorr(spkZ(1,:), conc(1,:)); % This is just to get lag vector and size of correlation vector
 lag = lag*binWidth;
-r = nan(size(conc,1), length(r));
-r_shuff = r;
+r = nan(size(conc,1), length(r_temp));  % empty matrix to store correlation values
+r_shuff = r;  % empty matrix to store shuffled correlation values
 
-for i=1:size(conc,1)
+for i=1:size(conc,1) % loop through every neuron to get xcorr between spikes and predicted concentration
     x = spkZ(i,:) - mean(spkZ(i,:));
-    y = conc(i,:);% - mean(conc(i,:));
-    r(i,:) = xcorr(x,y, 'normalized');
+    y = conc(i,:);
+    r(i,:) = xcorr(x,y, 'normalized'); % get real cross-correlation
 
-    x = x(randperm(length(x)));
-    % y = y(randperm(length(y)));
-    r_shuff(i,:) = xcorr(x,y,'normalized');
+    x = x(randperm(length(x))); % shuffle spikes for control
+    r_shuff(i,:) = xcorr(x,y,'normalized'); % get shuffled cross-correlation
 end
 
 %% Plot mean cross correlation (split by type)
 figure(123); clf
 hold on
 
+% plot shuffled controls 
 addShadedLine(lag, r_shuff(isControl,:), {'--', 'Color', (1-controlColor)*.3 + controlColor});
 addShadedLine(lag, r_shuff(isInject,:), {'--', 'Color', (1-injectColor)*.3 + injectColor});
 
+% plot real data
 addShadedLine(lag, r(isControl,:), {'Color', controlColor});
 addShadedLine(lag, r(isInject,:), {'Color', injectColor});
 
 yline(0)
 xline(0)
 
-%ylim([0,1])
-% plot([0,0],ylim,'k-');
-%uistack(l, 'bottom');
-% plot(xlim,[0,0], 'k-');
-%uistack(l, 'bottom');
 xlabel('Lag (s)')
 ylabel('Spiking correlation to [EtOH]')
-% leg = legend('aCSF','aCSF + EtOH', 'Location', 'northwest');
-% legend('boxoff')
-% leg.ItemTokenSize = [5,4];
 xlim([-500,700])
 
 f = gcf;
