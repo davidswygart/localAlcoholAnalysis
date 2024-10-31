@@ -1,6 +1,6 @@
 %%
 figFolder = 'C:\Users\david\Indiana University\Bryant, Kathleen - Acute Ethanol\Head-fixed mouse figures\1_Injection\linkedImages\';
-% figFolder = 'C:\Users\dis006\OneDrive - Indiana University\localAlcohol\Figures\1_Injection\matlabExports\';
+figFolder = 'Downloads';
 d_lowEk = load("diffusion_ek0p8.mat");
 d_highEk = load("diffusion_ek2.mat");
 load("goodClusters.mat")
@@ -67,8 +67,8 @@ for i=1:size(spkZ,2)
     [~,p]=ttest2(spkZ(isControl,i), spkZ(isInject,i),'Vartype','unequal');
     pVals(i) = p;
 end
-h = fdr_bh(pVals, 0.05, 'dep');
-scatter(x_time(h), zeros(sum(h),1), "*")
+%h = fdr_bh(pVals, 0.05, 'dep');
+%scatter(x_time(h), zeros(sum(h),1), "*")
 %% Run PCA
 weights = nan(size(spkZ,1),1);
 weights(isControl) = 0.5 / sum(isControl);
@@ -444,15 +444,22 @@ xlabel('Distance from injection (um)')
 lag = lag*binWidth;
 r = nan(size(conc,1), length(r_temp));  % empty matrix to store correlation values
 r_shuff = r;  % empty matrix to store shuffled correlation values
+r_auto_conc = r;  % empty matrix to store [EtOH] autocorrelation
+r_auto_spike = r;  % empty matrix to store spike autocorrelation
 
 for i=1:size(conc,1) % loop through every neuron to get xcorr between spikes and predicted concentration
     x = spkZ(i,:) - mean(spkZ(i,:));
     y = conc(i,:);
     r(i,:) = xcorr(x,y, 'normalized'); % get real cross-correlation
+    r_auto_conc(i,:) = xcorr(y,y, 'normalized'); % 
+    r_auto_spike(i,:) = xcorr(x,x, 'normalized'); % 
 
     x = x(randperm(length(x))); % shuffle spikes for control
     r_shuff(i,:) = xcorr(x,y,'normalized'); % get shuffled cross-correlation
 end
+
+%r_auto_conc = r_auto_conc - r; % corrected autocorrelation
+%r_auto_spike = r_auto_spike - r; % corrected autocorrelation
 
 %% Plot mean cross correlation (split by type)
 figure(123); clf
@@ -476,6 +483,36 @@ xlim([-500,700])
 f = gcf;
 f.Units = "inches";
 f.Position = [2,2,            3,             2.4];
+exportgraphics(gcf,[figFolder,'crossCorrelation.pdf'], "ContentType","vector","BackgroundColor","none")
+
+%% Plot mean cross correlation (EtOH only) compared to corrected autocorrelation
+fig =figure(123); clf
+set(fig,'defaultLegendAutoUpdate','off');
+hold on
+
+% plot shuffled controls 
+addShadedLine(lag, r_shuff(isInject,:), {'--', 'Color', (1-injectColor)*.3 + injectColor});
+
+% plot corrected autocorrelation  
+addShadedLine(lag, r_auto_conc(isInject,:), {'-', 'Color', [.9,.9,.5]});
+addShadedLine(lag, r_auto_spike(isInject,:), {'-', 'Color',[.9,.1,.9]});
+
+% plot real data
+addShadedLine(lag, r(isInject,:), {'Color', injectColor});
+
+legend('Shuffled', 'Auto ([EtOH])', 'Auto (spikes)', 'Cross correlation')
+
+
+yline(0)
+xline(0)
+
+xlabel('Lag (s)')
+ylabel('Spiking correlation to [EtOH]')
+xlim([-500,700])
+
+f = gcf;
+f.Units = "inches";
+%f.Position = [2,2,            3,             2.4];
 exportgraphics(gcf,[figFolder,'crossCorrelation.pdf'], "ContentType","vector","BackgroundColor","none")
 %% Mountain plot of correlation for peak min lag
 [~, lagInd] = min(mean(r(isInject,:)));
