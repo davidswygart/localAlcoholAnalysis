@@ -1,3 +1,9 @@
 
 *.asv
 *.DSTORE
+
+/data
+!/data*readme*
+
+/figureExport
+!/figureExport*readme*
