@@ -11,4 +11,5 @@ function paths = dataAndFigDirectoryPaths()
     paths.data = [paths.root, 'data', filesep];
     paths.individualRecordings = [paths.data, 'individualRecordings', filesep];
     paths.figures = [paths.root, 'figureExport', filesep];
+    paths.diffusionData = [paths.data, 'diffusion', filesep];
 end
