@@ -1,13 +1,16 @@
 
-load('C:\Users\dis006\OneDrive - Indiana University\localAlcohol\ephysData\group.mat')
-matFiles = string(ls('*.mat'));
-nFiles = size(matFiles,1);
+paths = dataAndFigDirectoryPaths();
+load([paths.data, 'group.mat'])
+matFiles = dir([paths.individualRecordings,'*.mat']);
+nFiles = length(matFiles);
 
 allClusters = table();
 
 for i = 1:nFiles
-    d = load(matFiles(i));
-    g = group(contains(group.matName, erase(matFiles(i),'.mat')), :);
+    name = matFiles(i).name;
+    d = load([paths.individualRecordings, name]);
+    isInTable = contains(group.matName, erase(name,'.mat'));
+    g = group(isInTable, :);
     
     if isempty(g)
         continue
@@ -20,3 +23,18 @@ for i = 1:nFiles
     clusters = [clusters, g];
     allClusters =[allClusters;clusters];
 end
+
+allClusters = addQualityMetrics(allClusters);
+allClusters = calcInjectionDist(allClusters);
+%% choose good clusters
+goodPhy = ~contains(allClusters.phyLabel,'noise');
+goodRate = allClusters.fr > 0.1;
+goodISI = allClusters.isiViolations < 1;
+goodPR =  allClusters.presenceRatio > 0.9;
+goodAC = allClusters.ampCutoff < 0.1; 
+goodDepth = allClusters.depth<1100;
+goodClusters = allClusters(goodPhy & goodRate & goodISI & goodPR & goodAC & goodDepth, :);
+
+%% save clusters
+save([paths.data,'allClusters.mat'],'allClusters')
+save([paths.data,'goodClusters.mat'],'goodClusters')
