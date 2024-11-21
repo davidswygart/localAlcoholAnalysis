@@ -1,11 +1,5 @@
-%%
+
 paths = dataAndFigDirectoryPaths();
-
-%d_lowEk = load([paths.data, 'diffusion_ek0p8.mat']);
-%d_highEk = load([paths.data, 'diffusion_ek2.mat']);
-load([paths.data, 'goodClusters.mat'])
-%%
-
 
 controlColor = [65, 2, 87]/255;
 injectColor = [217,95,2]/255;
@@ -18,6 +12,7 @@ negativeCorr_color = [90,180,172]/255;
 
 injectBoxTransparency = 0.2;
 
+load([paths.data, 'goodClusters.mat'])
 isControl = contains(goodClusters.group,'control') | contains(goodClusters.group,'drink');
 isInject = contains(goodClusters.group,'inject');
 %% Bin spikes around injection 
