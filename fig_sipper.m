@@ -1,7 +1,4 @@
-figFolder = 'C:\Users\david\Indiana University\Bryant, Kathleen - Acute Ethanol\Head-fixed mouse figures\2_Sipper\linkedImages\';
-% figFolder = 'C:\Users\dis006\OneDrive - Indiana University\localAlcohol\Figures\2_Sipper\matlabExports\';
-load("goodClusters.mat")
-load("group.mat")
+paths = dataAndFigDirectoryPaths();
 
 controlColor = [65, 2, 87]/255;
 drinkColor = [5, 105, 67]/255;
@@ -9,6 +6,10 @@ injectColor = [217,95,2]/255;
 
 PC1_color = [55,126,184]/255;
 PC2_color = [228,26,28]/255;
+
+
+load([paths.data, 'goodClusters.mat'])
+load([paths.data, 'group.mat'])
 
 isControl = contains(goodClusters.group,'control');
 isDrink = contains(goodClusters.group,'drink');
@@ -48,7 +49,7 @@ ylabel('Fluid consumed (ml/kg)')
 f = gcf;
 f.Units = "inches";
 f.Position = [2,2,           1.2,                1.7];
-exportgraphics(gcf,[figFolder,'volumeConsumed.pdf'],"BackgroundColor","none","ContentType","vector")
+exportgraphics(gcf,[paths.figures,'volumeConsumed.pdf'],"BackgroundColor","none","ContentType","vector")
 
 %%
 [~,pInjected] = ttest2(controlConsumed,injectedConsumed,'Vartype','unequal')
@@ -98,7 +99,7 @@ ylabel('Firing (Z-score)')
 f = gcf;
 f.Units = "inches";
 f.Position = [2,2,2.8,1.8];
-exportgraphics(gcf,[figFolder,'grandMean.pdf'], "ContentType","vector","BackgroundColor","none")
+exportgraphics(gcf,[paths.figures,'grandMean.pdf'], "ContentType","vector","BackgroundColor","none")
 %% save data for R anova
 % saveCsvForR_repeatedMeasuresMixedModel( ...
 %     {spkZ_fullTime(isControl,:), spkZ_fullTime(isInject,:), spkZ_fullTime(isDrink,:)}, ...
@@ -182,7 +183,7 @@ end
 f = gcf;
 f.Units = "inches";
 f.Position = [2,2,           4.2,               1.8];
-exportgraphics(gcf,[figFolder,'valveMean.pdf'],"ContentType","vector","BackgroundColor","none")
+exportgraphics(gcf,[paths.figures,'valveMean.pdf'],"ContentType","vector","BackgroundColor","none")
 
 %% save data for R anova
 saveCsvForR_repeatedMeasuresMixedModel( ...
@@ -209,7 +210,7 @@ xlim([.50,3.5])
 f = gcf;
 f.Units = "inches";
 f.Position = [2,2, 0.9, .9];
-exportgraphics(gcf,[figFolder,'pca_scree.pdf'],"ContentType","vector","BackgroundColor","none")
+exportgraphics(gcf,[paths.figures,'pca_scree.pdf'],"ContentType","vector","BackgroundColor","none")
 
 %% Plot PC pattern (score)
 figure(123); clf
@@ -240,7 +241,7 @@ yline(0)
 f = gcf;
 f.Units = "inches";
 f.Position = [2,2,        4.2,             1.8];
-exportgraphics(gcf,[figFolder,'pca_score.pdf'], "ContentType","vector", "BackgroundColor","none")
+exportgraphics(gcf,[paths.figures,'pca_score.pdf'], "ContentType","vector", "BackgroundColor","none")
 
 %% PC1 loadings, split by group  (mountain plot)
 figure(123); clf; hold on;
@@ -281,7 +282,7 @@ box on
 f = gcf;
 f.Units = "inches";
 f.Position = [2,2,2,1.2];
-exportgraphics(gcf,[figFolder,'pca_PC1Mountain.pdf'])
+exportgraphics(gcf,[paths.figures,'pca_PC1Mountain.pdf'])
 
 median(coeff(isControl,interestingPC))
 median(coeff(isInject,interestingPC))
@@ -328,7 +329,7 @@ box on
 f = gcf;
 f.Units = "inches";
 f.Position = [2,2,2,1.2];
-exportgraphics(gcf,[figFolder,'pca_PC2Mountain.pdf'])
+exportgraphics(gcf,[paths.figures,'pca_PC2Mountain.pdf'])
 
 %% Plot PC1 vs. PC2
 figure(11)
