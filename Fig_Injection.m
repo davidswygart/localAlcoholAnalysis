@@ -1,9 +1,11 @@
 %%
-figFolder = 'C:\Users\david\Indiana University\Bryant, Kathleen - Acute Ethanol\Head-fixed mouse figures\1_Injection\linkedImages\';
-% figFolder = 'C:\Users\dis006\OneDrive - Indiana University\localAlcohol\Figures\1_Injection\matlabExports\';
-d_lowEk = load("diffusion_ek0p8.mat");
-d_highEk = load("diffusion_ek2.mat");
-load("goodClusters.mat")
+paths = dataAndFigDirectoryPaths();
+
+%d_lowEk = load([paths.data, 'diffusion_ek0p8.mat']);
+%d_highEk = load([paths.data, 'diffusion_ek2.mat']);
+load([paths.data, 'goodClusters.mat'])
+%%
+
 
 controlColor = [65, 2, 87]/255;
 injectColor = [217,95,2]/255;
@@ -53,7 +55,7 @@ ylabel('Firing (Z-score)')
 f = gcf;
 f.Units = "inches";
 f.Position = [2,2,          4,           1.8];
-exportgraphics(gcf,[figFolder,'grandMean.pdf'], "ContentType","vector","BackgroundColor","none")
+exportgraphics(gcf,[paths.figures,'grandMean.pdf'], "ContentType","vector","BackgroundColor","none")
 
 %% save for R
 saveCsvForR_repeatedMeasuresMixedModel( ...
@@ -62,13 +64,13 @@ saveCsvForR_repeatedMeasuresMixedModel( ...
     'injectFiring.csv')
 
 
-pVals = nan(size(spkZ,2),1);
-for i=1:size(spkZ,2)
-    [~,p]=ttest2(spkZ(isControl,i), spkZ(isInject,i),'Vartype','unequal');
-    pVals(i) = p;
-end
-h = fdr_bh(pVals, 0.05, 'dep');
-scatter(x_time(h), zeros(sum(h),1), "*")
+% pVals = nan(size(spkZ,2),1);
+% for i=1:size(spkZ,2)
+%     [~,p]=ttest2(spkZ(isControl,i), spkZ(isInject,i),'Vartype','unequal');
+%     pVals(i) = p;
+% end
+% h = fdr_bh(pVals, 0.05, 'dep');
+% scatter(x_time(h), zeros(sum(h),1), "*")
 %% Run PCA
 weights = nan(size(spkZ,1),1);
 weights(isControl) = 0.5 / sum(isControl);
@@ -95,7 +97,7 @@ a.LineWidth = a.LineWidth*figScale;
 f = gcf;
 f.Units = "inches";
 f.OuterPosition = [2,2,          .75*figScale,           1.5*figScale];
-exportgraphics(gcf,[figFolder,'Scree.pdf'],"ContentType","vector",BackgroundColor="none")
+exportgraphics(gcf,[paths.figures,'Scree.pdf'],"ContentType","vector",BackgroundColor="none")
 
 %% Plot PC pattern (score)
 figure(123);clf;hold on
@@ -124,7 +126,7 @@ xlim([x_time(1), x_time(end)])
 f = gcf;
 f.Units = "inches";
 f.Position = [2,2,    4,         1.8];
-exportgraphics(gcf,[figFolder,'pca_score.pdf'],"ContentType","vector",BackgroundColor="none")
+exportgraphics(gcf,[paths.figures,'pca_score.pdf'],"ContentType","vector",BackgroundColor="none")
 
 %% PC1 loadings, split by group  (mountain plot)
 figure(123);clf; hold on;
@@ -154,7 +156,7 @@ box on
 f = gcf;
 f.Units = "inches";
 f.Position = [2,2,          1.9,            1.5];
-exportgraphics(gcf,[figFolder,'pca_PC1_loading.pdf'],"ContentType","vector",BackgroundColor="none")
+exportgraphics(gcf,[paths.figures,'pca_PC1_loading.pdf'],"ContentType","vector",BackgroundColor="none")
 %% PC2 loadings, split by group  (mountain plot)
 figure(123);clf; hold on;
 interestingPC = 2;
@@ -181,9 +183,11 @@ box on
 f = gcf;
 f.Units = "inches";
 f.Position = [2,2,         1.9,            1.5];
-exportgraphics(gcf,[figFolder,'pca_PC2_loading.pdf'],"ContentType","vector",BackgroundColor="none")
+exportgraphics(gcf,[paths.figures,'pca_PC2_loading.pdf'],"ContentType","vector",BackgroundColor="none")
 
 %% Combine high and low ek diffusion estimates
+d_lowEk = load([paths.diffusionData, 'diffusion_ek0p8.mat']);
+d_highEk = load([paths.diffusionData, 'diffusion_ek2.mat']);
 
 diffusion = struct;
 diffusion.time = d_highEk.diffusion.time;
@@ -233,7 +237,7 @@ xlim([-200,720])
 f = gcf;
 f.Units = "inches";
 f.Position = [2,2,               2.5,            2];
-exportgraphics(gcf,[figFolder,'concentration_atDistances.pdf'],"ContentType","vector","BackgroundColor","none")
+exportgraphics(gcf,[paths.figures,'concentration_atDistances.pdf'],"ContentType","vector","BackgroundColor","none")
 
 %% plot histogram of cluster distances vs. peak concentration
 
@@ -273,7 +277,7 @@ xlabel('Distance from injection (µm)')
 f = gcf;
 f.Units = "inches";
 f.Position = [2,2,2,2];
-exportgraphics(gcf,[figFolder,'concentration_ClusterDistAndPeak.pdf'], "BackgroundColor","none","ContentType","vector")
+exportgraphics(gcf,[paths.figures,'concentration_ClusterDistAndPeak.pdf'], "BackgroundColor","none","ContentType","vector")
 
 %% Calculate predicted alcohol time per cluster
 diffusion.conc = diffusion.conc_mean;
@@ -363,7 +367,7 @@ xlim([0.5,2.5])
 
 f.Units = "inches";
 f.Position = [2,2,1.6,2.2];
-exportgraphics(gcf,[figFolder,'concentration_stackedBar.pdf'],"ContentType","vector","BackgroundColor","none")
+exportgraphics(gcf,[paths.figures,'concentration_stackedBar.pdf'],"ContentType","vector","BackgroundColor","none")
 
 %% plot mean firing for high and low correlation clusters (Control)
 figure(123); clf; hold on
@@ -392,7 +396,7 @@ ylabel("Firing (Z-score)")
 f = gcf;
 f.Units = "inches";
 f.Position = [2,2,            3,                 1.2];
-exportgraphics(gcf,[figFolder,'Control_corr.pdf'], "ContentType","vector","BackgroundColor","none")
+exportgraphics(gcf,[paths.figures,'Control_corr.pdf'], "ContentType","vector","BackgroundColor","none")
 
 %% plot mean firing for high and low correlation clusters (Inject)
 figure(123); clf; hold on
@@ -418,7 +422,7 @@ ylabel("Firing (Z-score)")
 
 f.Units = "inches";
 f.Position = [2,2,             3,               1.4];
-exportgraphics(gcf,[figFolder,'Inject_corr.pdf'], "ContentType","vector","BackgroundColor","none")
+exportgraphics(gcf,[paths.figures,'Inject_corr.pdf'], "ContentType","vector","BackgroundColor","none")
 %% Scatter plot correlation vs distance
 figure(7); clf
 
@@ -476,7 +480,7 @@ xlim([-500,700])
 f = gcf;
 f.Units = "inches";
 f.Position = [2,2,            3,             2.4];
-exportgraphics(gcf,[figFolder,'crossCorrelation.pdf'], "ContentType","vector","BackgroundColor","none")
+exportgraphics(gcf,[paths.figures,'crossCorrelation.pdf'], "ContentType","vector","BackgroundColor","none")
 %% Mountain plot of correlation for peak min lag
 [~, lagInd] = min(mean(r(isInject,:)));
 
@@ -503,7 +507,7 @@ box on
 f = gcf;
 f.Units = "inches";
 f.Position = [2,2,          1.6,            1.1];
-exportgraphics(gcf,[figFolder,'correlation_peakMinLag.pdf'], "ContentType","vector","BackgroundColor","none")
+exportgraphics(gcf,[paths.figures,'correlation_peakMinLag.pdf'], "ContentType","vector","BackgroundColor","none")
 
 
 [~,pval,~,ttestStats] = ttest2(r(isControl,lagInd), r(isInject,lagInd), "Vartype","unequal")
@@ -532,7 +536,7 @@ box on
 f = gcf;
 f.Units = "inches";
 f.Position = [2,2,          1.6,            1.1];
-exportgraphics(gcf,[figFolder,'correlation_peakMaxLag.pdf'], "ContentType","vector","BackgroundColor","none")
+exportgraphics(gcf,[paths.figures,'correlation_peakMaxLag.pdf'], "ContentType","vector","BackgroundColor","none")
 
 [~,pval,~,ttestStats] = ttest2(r(isControl,lagInd), r(isInject,lagInd), "Vartype","unequal")
 %% Scatter plot correlation vs distance for lag point
