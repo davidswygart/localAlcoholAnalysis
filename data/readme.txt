@@ -1,1 +1,0 @@
-This folder contains data which will not be tracked by git.

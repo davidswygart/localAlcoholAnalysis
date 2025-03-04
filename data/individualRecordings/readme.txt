@@ -1,1 +1,0 @@
-This folder contains spike data for each experiment.

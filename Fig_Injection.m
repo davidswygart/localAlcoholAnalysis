@@ -1,5 +1,5 @@
-
-paths = dataAndFigDirectoryPaths();
+% navigate to data folder in MATLAB "Current Folder Browser"
+paths = dataAndFigDirectoryPaths(pwd());
 
 controlColor = [65, 2, 87]/255;
 injectColor = [217,95,2]/255;
